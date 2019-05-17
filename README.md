@@ -2,20 +2,28 @@
 
 Senior Design Audio Fraud Project
 
-Problem:
+## Problem:
+
 Currently, there is not a system in place to detect fraudulent computer generated audio. Yet, there are systems that is able to take a 3-5 second snippet of your voice and could generate full length audio using your voice. This causes security issues since human biometrics are being used to access secure information.
 
-Solution:
+## Solution:
+
 Design a secure voice recognition system that is able to detect computer generated audio fraud.
 
-Modules:
-Fraud Detection Algorithm, 
-Speaker Recognition Algorithm,
-Wifi Module Connection
+## Modules:
+
+- Fraud Detection Algorithm
+
+- Speaker Recognition Algorithm
+
+- Wifi Module Connection
 
 
 
 ### Team Members:
-Yesha Lester (Software),
-Sedrick Cashaw Jr (Software), 
-Hussein (Shawn) El-Souri (Hardware)
+
+- [Yesha Lester](https://github.com/ylester)
+
+- [Sedrick Cashaw Jr](https://github.com/sedcash)
+
+- [Hussein (Shawn) El-Souri](https://github.com/helsouri)
