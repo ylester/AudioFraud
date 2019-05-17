@@ -1,4 +1,4 @@
-## AudioFraud
+# AudioFraud
 
 Senior Design Audio Fraud Project
 
@@ -9,13 +9,13 @@ Solution:
 Design a secure voice recognition system that is able to detect computer generated audio fraud.
 
 Modules:
-Fraud Detection Algorithm
-Speaker Recognition Algorithm
+Fraud Detection Algorithm, 
+Speaker Recognition Algorithm,
 Wifi Module Connection
 
 
 
-# Team Members:
-Yesha Lester (Software)
-Sedrick Cashaw Jr (Software)
+### Team Members:
+Yesha Lester (Software),
+Sedrick Cashaw Jr (Software), 
 Hussein (Shawn) El-Souri (Hardware)
