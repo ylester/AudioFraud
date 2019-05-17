@@ -1,6 +1,6 @@
 # AudioFraud
 
-Senior Design Audio Fraud Project
+This is a Senior Design Audio Fraud Project that will focus on differentiations provided from extraction of audio feautures to determine whether the speaker is authentic or computer generated all while identifying the users in the process.
 
 ## Problem:
 
@@ -13,10 +13,13 @@ Design a secure voice recognition system that is able to detect computer generat
 ## Modules:
 
 - Fraud Detection Algorithm
+    - This module will focus on detecting fraud (computer generated audio) within a time span of 3-5 seconds.
 
 - Speaker Recognition Algorithm
+    - The algorithm will identify the slight alterations given by the different set of audios to detect the current speaker.
 
 - Wifi Module Connection
+    - Will handle data flow to and from the wifi module
 
 
 
