@@ -28,3 +28,4 @@ while True:
             # and speaker recognition module
             fraud.sendaudio(content)
             speaker_recognition.sendaudio(content)
+            
