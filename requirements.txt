@@ -1,0 +1,13 @@
+numpy >= 1.9.1
+scipy
+pandas
+matplotlib
+scikit-learn
+seaborn
+plotly
+pyaudio
+pyttsx3 == 2.71
+pyAudioAnalysis == 0.2.5
+requests >= 2.0.0,< 3.0.0
+six >= 1.9.0
+setuptools >= 36
