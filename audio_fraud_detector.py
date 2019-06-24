@@ -13,17 +13,20 @@ from sklearn.utils.multiclass import unique_labels
 
 
 def create_dataframe():
-	path = "ClonedSamples"
-	files = os.listdir(path)
-	df = pd.DataFrame()
-	cg_audio = []
-	cg_mfcc = []
-	cg_filter_bank = []
-	cg_rates = []
-
-	for audio in files:
-		if ".wav" in audio:
-			cg_audio.append(audio)
+    """
+    This module creates a dataframe by extracting features
+    from the audio files and storing the data in the dataframe
+    """
+    path = "/Users/ylester/AudioFraud/ClonedSamples"
+    files = os.listdir(path)
+    df = pd.DataFrame()
+    cg_audio = []
+    cg_mfcc = []
+    cg_filter_bank = []
+    cg_rates = []
+    for audio in files:
+        if ".wav" in audio:
+            cg_audio.append(audio)
 			rate, sig = wav.read(audio)
 			cg_rates.append(rate/1000)
 			mfcc_feature = mfcc(sig, rate)
@@ -35,10 +38,12 @@ def create_dataframe():
 	df['rates'] = cg_rates
 	df['mfcc'] = cg_mfcc
 	df['filter_bank'] = cg_filter_bank
+    # Adding Authentic Audio to Dataframe Soon
 	return df
 
 
-def data_visualization(df):
+def analyze_data(df):
+    """This module is to visualize and analyze the data and features"""
 	# Analyze audio rate data
 	rates = df.rates
 	plt.bar(np.arange(len(rates)), rates)
@@ -60,14 +65,8 @@ def data_visualization(df):
 
 
 def import_audio_data(*kwargs):
-	pass
-
-
-def extract_features(*kwargs):
-    pass
-
-
-def analyze_data(*kwargs):
+    # Need to import Shawn's Python Module
+    # that communicates with the wifi module
 	pass
 
 
@@ -81,4 +80,4 @@ def send_results_to_hardware(*kwargs):
 
 if __name__ == "__main__":
 	data = create_dataframe()
-	data_visualization(data)
+	analyze_data(data)
