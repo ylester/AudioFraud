@@ -12,9 +12,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, auc, confusion_matrix
 from sklearn.utils.multiclass import unique_labels
-import warnings
-
-warnings.filterwarnings("ignore")
 
 
 def create_dataframe():
