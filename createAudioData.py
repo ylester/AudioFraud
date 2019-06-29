@@ -1,5 +1,9 @@
+# from pydub import AudioSegment
+import os
+import scipy.io.wavfile as wav
+import pandas as pd
+from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
-import os,io
 
 
 exe_directory_in_str = "/Users/sedrick/Documents/AudioFraud/AudioFraud"
@@ -33,4 +37,36 @@ def createData():
         else:
          continue
 
-createData()
+def create_dataframe():
+    directory = os.getcwd() + "/data"
+    df = pd.DataFrame()
+    files = []
+    filter_bank = []
+    mfccs = []
+    people = []
+    rates = []
+    speaker_nums = []
+
+    for index, dir in enumerate(os.listdir(directory)):
+        datadir =  directory + "/" + dir
+        os.chdir(datadir)
+        for audio_file in os.listdir(datadir):
+            rate, sig = wav.read(audio_file)
+            fbank_feat = logfbank(sig, rate, nfft=1103)
+            mfcc_feature = mfcc(sig, rate, nfft=1103)
+            files.append(audio_file)
+            mfccs.append(mfcc_feature)
+            people.append(dir)
+            rates.append(rate / 1000)
+            speaker_nums.append(index + 1)
+            filter_bank.append(fbank_feat)
+
+    df['file'] = files
+    df['filter_bank'] = filter_bank
+    df['mfcc'] = mfccs
+    df["person"] = people
+    df['rate'] = rates
+    df["speaker_num"] = speaker_nums
+    return df
+
+print(create_dataframe())
