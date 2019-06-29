@@ -68,6 +68,7 @@ def analyze_data(df):
     plt.title("Average MFCC Histogram")
     plt.xlabel("MFCC Feature Vector Average")
     plt.ylabel("# of Avgs")
+    plt.text(0, 23, 'Mean: {:.2f}'.format(np.asarray(avg_mfcc).mean()))
     plt.show()
     # Here is showing an example of MFCC features that are contained in ONE audio file
     mfcc_visual = mfcc[0]
@@ -80,8 +81,11 @@ def analyze_data(df):
     plt.plot(mfcc_visual[0])
     plt.plot(mfcc_visual[10])
     plt.plot(mfcc_visual[20])
+    plt.title("MFCC Features (3)")
+    plt.xlabel("Features (Per Color)")
+    plt.ylabel("Frequency")
     plt.show()
-    
+
 
     # Analyze filter bank data
     fbank = df.filter_bank
@@ -99,6 +103,38 @@ def analyze_data(df):
     plt.xlabel("Filter-bank Averages")
     plt.ylabel("Count")
     plt.show()
+    # Here is showing an example of Filter Bank features that are contained in ONE audio file
+    fbank_visual = fbank[1]
+    plt.plot(fbank_visual)
+    plt.title("Filter Bank Features Per Audio File")
+    plt.xlabel("Features (Per Color)")
+    plt.ylabel("Frequency")
+    plt.show()
+    # This is to select only 3 features out of the audio and see what that looks like
+    plt.plot(fbank_visual[0])
+    plt.plot(fbank_visual[10])
+    plt.plot(fbank_visual[20])
+    plt.title("Fbank Features (3)")
+    plt.xlabel("Features (Per Color)")
+    plt.ylabel("Frequency")
+    plt.show()
+
+    # Spectrogram snapshot of an Audio Wave File
+    sampling_frequency, signal_data = wav.read(df['computer_generated_audio'][0])
+    plt.subplot(211)
+    plt.title('Spectrogram of an audio wav file')
+    plt.plot(signal_data)
+    plt.xlabel('Sample')
+    plt.ylabel('Amplitude')
+    plt.subplot(212)
+    plt.specgram(signal_data, Fs=sampling_frequency)
+    plt.xlabel('Time')
+    plt.ylabel('Frequency')
+    plt.show()
+
+
+def detect_fraud(df):
+    train, test = train_test_split(df, test_size=0.2)
 
 
 def import_audio_data(*kwargs):
@@ -107,14 +143,13 @@ def import_audio_data(*kwargs):
     pass
 
 
-def detect_fraud(*kwargs):
-    pass
-
-
 def send_results_to_hardware(*kwargs):
+    # Need to import Shawn's Python Module
+    # that communicates with the wifi module
     pass
 
 
 if __name__ == "__main__":
     data = create_dataframe()
     analyze_data(data)
+    detect_fraud(data)
