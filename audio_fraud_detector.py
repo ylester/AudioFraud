@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import glob
 import scipy.io.wavfile as wav
+import seaborn as sns
 from scipy import signal
 from python_speech_features import mfcc
 from python_speech_features import logfbank
@@ -45,24 +46,58 @@ def create_dataframe():
 
 
 def analyze_data(df):
-    """This module is to visualize and analyze the data and features"""
+    """
+    This module is to visualize and analyze the data and features
+    """
+
     # Analyze audio rate data
-    rates = df.rates
-    plt.bar(np.arange(len(rates)), rates)
+    rates = df['rates'].value_counts()
+    labels = ["16MHz", "48MHz"]
+    plt.pie(rates, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+    plt.title("Audio Rate Data (MHz)")
     plt.show()
+
     # Analyze the mel-frequency data
     mfcc = df.mfcc
     avg_mfcc = []
     for data in mfcc:
-        avg_mfcc.append(np.average(data))
-    plt.bar(np.arange(len(avg_mfcc)), avg_mfcc)
+        avg_mfcc.append(np.around(np.average(data), decimals=4))
+    counts, bins = np.histogram(avg_mfcc)
+    plt.hist(bins[:-1], bins, weights=counts, color='c', edgecolor='k')
+    plt.axvline(np.asarray(avg_mfcc).mean(), color='k', linestyle='dashed', linewidth=1)
+    plt.title("Average MFCC Histogram")
+    plt.xlabel("MFCC Feature Vector Average")
+    plt.ylabel("# of Avgs")
     plt.show()
+    # Here is showing an example of MFCC features that are contained in ONE audio file
+    mfcc_visual = mfcc[0]
+    plt.plot(mfcc_visual)
+    plt.title("MFCC Features Per Audio File")
+    plt.xlabel("Features (Per Color)")
+    plt.ylabel("Frequency")
+    plt.show()
+    # This is to select only 3 features out of the audio and see what that looks like
+    plt.plot(mfcc_visual[0])
+    plt.plot(mfcc_visual[10])
+    plt.plot(mfcc_visual[20])
+    plt.show()
+    
+
     # Analyze filter bank data
     fbank = df.filter_bank
     avg_fbank = []
     for values in fbank:
-        avg_fbank.append(np.average(values))
+        avg_fbank.append(np.around(np.average(values), decimals=4))
     plt.bar(np.arange(len(avg_fbank)), avg_fbank)
+    plt.title("Filter Bank Averages Per Wave File")
+    plt.xlabel("Filter-bank Averages")
+    plt.ylabel("Count")
+    plt.show()
+    counts, bins = np.histogram(avg_fbank)
+    plt.hist(bins[:-1], bins, weights=counts, color='b', edgecolor='k')
+    plt.title("Filter Bank Frequency Distribution")
+    plt.xlabel("Filter-bank Averages")
+    plt.ylabel("Count")
     plt.show()
 
 
@@ -82,4 +117,4 @@ def send_results_to_hardware(*kwargs):
 
 if __name__ == "__main__":
     data = create_dataframe()
-    # analyze_data(data)
+    analyze_data(data)
