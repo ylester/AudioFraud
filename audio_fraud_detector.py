@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 import glob
 import scipy.io.wavfile as wav
-import seaborn as sns
-from scipy import signal
+import librosa
 from python_speech_features import mfcc
 from python_speech_features import logfbank
 from sklearn import preprocessing
@@ -15,34 +13,75 @@ from sklearn.metrics import f1_score, auc, confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 
 
-def create_dataframe():
+def create_cga_dataframe():
     """
-    This module creates a dataframe by extracting features
-    from the audio files and storing the data in the dataframe
+    This module creates a computer generated audio data frame
+    by extracting features from the audio files and storing
+    the data
     """
 
-    path = "ClonedSamples/*.wav"
+    cg_path = "ClonedSamples/*.wav"
     cg_audio = []
     cg_mfcc = []
     cg_filter_bank = []
     cg_rates = []
     df = pd.DataFrame()
 
-    for wave_file in glob.glob(path):
+    for wave_file in glob.glob(cg_path):
         cg_audio.append(wave_file)
         rate, sig = wav.read(wave_file)
-        cg_rates.append(rate / 1000)
+        cg_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1200)
         cg_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1200)
         cg_filter_bank.append(fbank_feat)
 
     df['computer_generated_audio'] = cg_audio
-    df['rates'] = cg_rates
-    df['mfcc'] = cg_mfcc
-    df['filter_bank'] = cg_filter_bank
-    # Adding Authentic Audio to Data frame Soon
+    df['computer_generated_rates'] = cg_rates
+    df['computer_generated_mfcc'] = cg_mfcc
+    df['computer_generated_filter_bank'] = cg_filter_bank
+
     return df
+
+
+def create_aa_dataframe():
+    """
+    This module creates an authentic audio data frame by extracting features
+    from the audio files and storing the data
+    """
+
+    auth_sed = "data/sedrick/*.wav"
+    auth_esh = "data/yesha/*.wav"
+    auth_audio = []
+    auth_mfcc = []
+    auth_filter_bank = []
+    auth_rates = []
+    df2 = pd.DataFrame()
+
+    for wave_file in glob.glob(auth_esh):
+        auth_audio.append(wave_file)
+        rate, sig = wav.read(wave_file)
+        auth_rates.append(rate)
+        mfcc_feature = mfcc(sig, rate, nfft=1103)
+        auth_mfcc.append(mfcc_feature)
+        fbank_feat = logfbank(sig, rate, nfft=1200)
+        auth_filter_bank.append(fbank_feat)
+
+    for wave_file in glob.glob(auth_sed):
+        auth_audio.append(wave_file)
+        rate, sig = wav.read(wave_file)
+        auth_rates.append(rate / 1000)
+        mfcc_feature = mfcc(sig, rate, nfft=1200)
+        auth_mfcc.append(mfcc_feature)
+        fbank_feat = logfbank(sig, rate, nfft=1200)
+        auth_filter_bank.append(fbank_feat)
+
+    df2['authentic_audio'] = auth_audio
+    df2['authentic_rates'] = auth_rates
+    df2['authentic_mfcc'] = auth_mfcc
+    df2['authentic_filter_bank'] = auth_filter_bank
+
+    return df2
 
 
 def analyze_data(df):
@@ -51,14 +90,14 @@ def analyze_data(df):
     """
 
     # Analyze audio rate data
-    rates = df['rates'].value_counts()
+    rates = df['computer_generated_rates'].value_counts()
     labels = ["16MHz", "48MHz"]
     plt.pie(rates, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
     plt.title("Audio Rate Data (MHz)")
     plt.show()
 
     # Analyze the mel-frequency data
-    mfcc = df.mfcc
+    mfcc = df.computer_generated_mfcc
     avg_mfcc = []
     for data in mfcc:
         avg_mfcc.append(np.around(np.average(data), decimals=4))
@@ -88,7 +127,7 @@ def analyze_data(df):
 
 
     # Analyze filter bank data
-    fbank = df.filter_bank
+    fbank = df.computer_generated_filter_bank
     avg_fbank = []
     for values in fbank:
         avg_fbank.append(np.around(np.average(values), decimals=4))
@@ -135,6 +174,8 @@ def analyze_data(df):
 
 def detect_fraud(df):
     train, test = train_test_split(df, test_size=0.2)
+    # Will begin training model once I correctly extract
+    # all necessary data
 
 
 def import_audio_data(*kwargs):
@@ -150,6 +191,7 @@ def send_results_to_hardware(*kwargs):
 
 
 if __name__ == "__main__":
-    data = create_dataframe()
-    analyze_data(data)
-    detect_fraud(data)
+    computer_generated_audio_data = create_cga_dataframe()
+    # authentic_audio_data = create_aa_dataframe()
+    analyze_data(computer_generated_audio_data)
+
