@@ -3,13 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import scipy.io.wavfile as wav
-import librosa
 from python_speech_features import mfcc
 from python_speech_features import logfbank
-from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score, auc, confusion_matrix
+from sklearn.metrics import f1_score, roc_auc_score, confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 
 
@@ -22,9 +20,10 @@ def create_cga_dataframe():
 
     cg_path = "ClonedSamples/*.wav"
     cg_audio = []
-    cg_mfcc = []
+    cg_mfcc = [] # Cepstrum is the information of rate of change in spectral bands
     cg_filter_bank = []
     cg_rates = []
+    cg_fraud = []
     df = pd.DataFrame()
 
     for wave_file in glob.glob(cg_path):
@@ -35,11 +34,13 @@ def create_cga_dataframe():
         cg_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1200)
         cg_filter_bank.append(fbank_feat)
+        cg_fraud.append(1)
 
     df['computer_generated_audio'] = cg_audio
     df['computer_generated_rates'] = cg_rates
     df['computer_generated_mfcc'] = cg_mfcc
     df['computer_generated_filter_bank'] = cg_filter_bank
+    df['fraud'] = cg_fraud
 
     return df
 
@@ -56,6 +57,7 @@ def create_aa_dataframe():
     auth_mfcc = []
     auth_filter_bank = []
     auth_rates = []
+    auth_fraud = []
     df2 = pd.DataFrame()
 
     for wave_file in glob.glob(auth_esh):
@@ -66,6 +68,7 @@ def create_aa_dataframe():
         auth_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1200)
         auth_filter_bank.append(fbank_feat)
+        auth_fraud.append(0)
 
     for wave_file in glob.glob(auth_sed):
         auth_audio.append(wave_file)
@@ -75,25 +78,27 @@ def create_aa_dataframe():
         auth_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1200)
         auth_filter_bank.append(fbank_feat)
+        auth_fraud.append(0)
 
     df2['authentic_audio'] = auth_audio
     df2['authentic_rates'] = auth_rates
     df2['authentic_mfcc'] = auth_mfcc
     df2['authentic_filter_bank'] = auth_filter_bank
+    df2['fraud'] = auth_fraud
 
     return df2
 
 
-def analyze_data(df):
+def analyze_computer_generated_audio_data(df):
     """
     This module is to visualize and analyze the data and features
     """
 
     # Analyze audio rate data
     rates = df['computer_generated_rates'].value_counts()
-    labels = ["16MHz", "48MHz"]
+    labels = ["16kHz", "48kHz"]
     plt.pie(rates, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
-    plt.title("Audio Rate Data (MHz)")
+    plt.title("Computer Generated Audio Rate Data")
     plt.show()
 
     # Analyze the mel-frequency data
@@ -172,20 +177,45 @@ def analyze_data(df):
     plt.show()
 
 
-def detect_fraud(df):
-    train, test = train_test_split(df, test_size=0.2)
-    # Will begin training model once I correctly extract
-    # all necessary data
+def detect_fraud(cg_df, auth_df):
+    X_train, X_test, y_train, y_test = train_test_split(cg_df, auth_df, test_size=0.2)
+    classifier = LogisticRegression()
+    classifier.fit(X_train, y_train)
+    y_pred_FRAUD = classifier.predict(X_test)
+    y_pred_AUTH = classifier.predict(y_test)
 
+    # Calculate Confusion Matrix for FRAUD audio
+    cm_fraud = confusion_matrix(X_test, y_pred_FRAUD)
+    print("\nFraudulent Audio Confusion Matrix: ", cm_fraud)
+
+    # Calculate Confusion Matrix for AUTHENTIC audio
+    cm_auth = confusion_matrix(y_test, y_pred_AUTH)
+    print("\nNon-Fraudulent Audio Confusion Matrix: ", cm_auth)
+
+    # Compute Area Under the Receiver Operating Characteristic Curve (FRAUD)
+    auc_fraud = roc_auc_score(X_test, y_pred_FRAUD)
+    print("\nROC AUC (FRAUD): ", auc_fraud)
+
+    # Compute Area Under the Receiver Operating Characteristic Curve (AUTHENTUC)
+    auc_auth = roc_auc_score(y_test, y_pred_AUTH)
+    print("\nROC AUC (AUTHENTIC): ", auc_auth)
+
+    # Compute F-Score (FRAUD)
+    fscore_fraud = f1_score(X_test, y_pred_FRAUD)
+    print("\nF-Score Fraud: ", fscore_fraud)
+
+    # Compute F-Score (AUTHENTIC)
+    fscore_auth = f1_score(y_test, y_pred_AUTH)
+    print("\nF-Score Authentic: ", fscore_auth)
 
 def import_audio_data(*kwargs):
-    # Need to import Shawn's Python Module
+    # Need to import Shawn's Module
     # that communicates with the wifi module
     pass
 
 
 def send_results_to_hardware(*kwargs):
-    # Need to import Shawn's Python Module
+    # Need to import Shawn's Module 
     # that communicates with the wifi module
     pass
 
@@ -193,5 +223,5 @@ def send_results_to_hardware(*kwargs):
 if __name__ == "__main__":
     computer_generated_audio_data = create_cga_dataframe()
     # authentic_audio_data = create_aa_dataframe()
-    analyze_data(computer_generated_audio_data)
-
+    analyze_computer_generated_audio_data(computer_generated_audio_data)
+    # detect_fraud(computer_generated_audio_data, authentic_audio_data)
