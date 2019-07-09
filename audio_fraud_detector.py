@@ -184,6 +184,10 @@ def analyze_computer_generated_audio_data(df):
     plt.show()
 
 
+def analyze_authentic_audio_data(df):
+    pass
+
+
 def detect_fraud(cg_df, auth_df, input_audio=None):
     """
     This module will train the ML module with df inputs to detect whether
@@ -236,6 +240,7 @@ def send_results_to_hardware(*kwargs):
 
 if __name__ == "__main__":
     computer_generated_audio_data = create_cga_dataframe()
-    # authentic_audio_data = create_aa_dataframe()
     analyze_computer_generated_audio_data(computer_generated_audio_data)
+    # authentic_audio_data = create_aa_dataframe()
+    # analyze_authentic_audio_data(authentic_audio_data)
     # detect_fraud(computer_generated_audio_data, authentic_audio_data)
