@@ -24,6 +24,7 @@ def create_cga_dataframe():
     cg_filter_bank = []
     cg_rates = []
     cg_fraud = []
+    cg_auth = []
     df = pd.DataFrame()
 
     for wave_file in glob.glob(cg_path):
@@ -35,12 +36,14 @@ def create_cga_dataframe():
         fbank_feat = logfbank(sig, rate, nfft=1200)
         cg_filter_bank.append(fbank_feat)
         cg_fraud.append(1)
+        cg_auth.append(0)
 
     df['computer_generated_audio'] = cg_audio
     df['computer_generated_rates'] = cg_rates
     df['computer_generated_mfcc'] = cg_mfcc
     df['computer_generated_filter_bank'] = cg_filter_bank
     df['fraud'] = cg_fraud
+    df['authentic'] = cg_auth
 
     return df
 
@@ -58,6 +61,7 @@ def create_aa_dataframe():
     auth_filter_bank = []
     auth_rates = []
     auth_fraud = []
+    auth_auth = []
     df2 = pd.DataFrame()
 
     for wave_file in glob.glob(auth_esh):
@@ -69,6 +73,7 @@ def create_aa_dataframe():
         fbank_feat = logfbank(sig, rate, nfft=1200)
         auth_filter_bank.append(fbank_feat)
         auth_fraud.append(0)
+        auth_auth.append(1)
 
     for wave_file in glob.glob(auth_sed):
         auth_audio.append(wave_file)
@@ -79,12 +84,14 @@ def create_aa_dataframe():
         fbank_feat = logfbank(sig, rate, nfft=1200)
         auth_filter_bank.append(fbank_feat)
         auth_fraud.append(0)
+        auth_auth.append(1)
 
     df2['authentic_audio'] = auth_audio
     df2['authentic_rates'] = auth_rates
     df2['authentic_mfcc'] = auth_mfcc
     df2['authentic_filter_bank'] = auth_filter_bank
     df2['fraud'] = auth_fraud
+    df2['authentic'] = auth_auth
 
     return df2
 
@@ -177,7 +184,12 @@ def analyze_computer_generated_audio_data(df):
     plt.show()
 
 
-def detect_fraud(cg_df, auth_df):
+def detect_fraud(cg_df, auth_df, input_audio=None):
+    """
+    This module will train the ML module with df inputs to detect whether
+    an input audio is fraudulent or non-fraudulent
+    """
+
     X_train, X_test, y_train, y_test = train_test_split(cg_df, auth_df, test_size=0.2)
     classifier = LogisticRegression()
     classifier.fit(X_train, y_train)
@@ -207,6 +219,8 @@ def detect_fraud(cg_df, auth_df):
     # Compute F-Score (AUTHENTIC)
     fscore_auth = f1_score(y_test, y_pred_AUTH)
     print("\nF-Score Authentic: ", fscore_auth)
+
+    # Logic for input audio coming soon
 
 def import_audio_data(*kwargs):
     # Need to import Shawn's Module
