@@ -158,6 +158,7 @@ def get_data():
     df = pd.DataFrame.from_csv(csv)
     return df
 
+
 def create_csv(df, filename):
     df.to_csv(filename)
 
