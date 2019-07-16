@@ -2,8 +2,11 @@ import os
 import scipy.io.wavfile as wav
 import pandas as pd
 from python_speech_features import mfcc, logfbank
-from pydub import AudioSegment
+# from pydub import AudioSegment
 from scipy.signal import stft
+import glob
+import tqdm as loader
+
 
 def create_data(data_dir):
     recorded_dir = os.path.join(data_dir, "fraud/recorded")
@@ -67,8 +70,10 @@ def is_fraud(filename):
         return False, 0
 
 
-def get_filename(file):
-    return os.fsdecode(file)
+def get_filename(file, person):
+    lastchar_index = file.index(person[-1]) + 2
+    return file[lastchar_index:]
+    # return os.fsdecode(file)
 
 
 def create_dataframe(data_dir):
@@ -88,19 +93,16 @@ def create_dataframe(data_dir):
     filter_bank = []
 
     counter = 1
+
     for index, person in enumerate(os.listdir(data_dir)):
         if person in ["authentic", "original", "fraud"]:
             continue
         person_dir = get_person_dir(person, data_dir)
-        person_dir = os.path.realpath(person_dir)
-        files = os.listdir(os.fsencode(person_dir))
-        for audio_file in files:
-            if isinstance(audio_file, str):
-                print(audio_file)
-                print(counter)
-                break
-            audio_file = audio_file.decode("utf-8")
-            audio_file = person_dir + "/" + audio_file
+        # person_dir = os.path.realpath(person_dir)
+        # files = os.listdir(person_dir)
+        path = person_dir + "/*.wav"
+        for audio_file in glob.glob(path):
+            print(audio_file)
             rate, stereo = wav.read(audio_file)
             files.append(audio_file)
             people.append(person)
@@ -114,7 +116,7 @@ def create_dataframe(data_dir):
             mfccs.append(mfcc_feature)
             freq.append(f)
             z.append(Zxx.T)
-            filename = get_filename(audio_file)
+            filename = get_filename(audio_file, person)
             file_names.append(filename)
             fraud_value, fraud_type = is_fraud(filename)
             if fraud_value:
@@ -164,9 +166,11 @@ def create_csv(df, filename):
 
 data_dir = "data"
 df = create_dataframe(data_dir)
+print(df.head())
 filename = "/audio_data.csv"
 path = os.path.join(data_dir)
-path = os.path.realpath + filename
+path = os.path.realpath(path) + filename
 create_csv(df, path)
 df = get_data()
+print(df.head())
 
