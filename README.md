@@ -16,7 +16,7 @@ Design a secure voice recognition system that is able to detect computer generat
 git clone git@github.com:ylester/AudioFraud.
 cd AudioFraud
 python3 -m virtualenv --python=$pypath .venv
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ## Modules:
