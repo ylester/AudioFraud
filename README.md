@@ -10,13 +10,13 @@ Currently, there is not a system in place to detect fraudulent computer generate
 
 Design a secure voice recognition system that is able to detect computer generated audio fraud.
 
-##Install:
+## Installation:
 
 ```bash
 git clone 
 cd AudioFraud
 python3 -m virtualenv --python=$pypath .venv
-source .venv/bin/activate
+source venv/bin/activate
 ```
 
 ## Modules:
