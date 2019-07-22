@@ -30,6 +30,7 @@ source .venv/bin/activate
 - Wifi Module Connection
     - Will handle data flow to and from the wifi module
 
+![Screen_Output](https://raw.githubusercontent.com/ylester/AudioFraud/master/SMD.png)
 
 
 ### Team Members:
