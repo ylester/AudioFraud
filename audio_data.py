@@ -92,7 +92,7 @@ def create_dataframe(data_dir):
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
-        if person in ["authentic", "original", "fraud"]:
+        if person in ["authentic", "original", "fraud", "shawn"]:
             continue
         person_dir = get_person_dir(person, data_dir)
         path = person_dir + "/*.wav"
@@ -137,6 +137,7 @@ def create_dataframe(data_dir):
     df["speaker_num"] = speaker_nums
     df["frequency"] = freq
     df["voiceprint"] = z
+    df["voiceprint"] = df["voiceprint"].abs()
     df["filename"] = file_names
     df["fraud"] = fraud
     df["authentic"] = authentic
@@ -159,5 +160,9 @@ def get_data():
 def create_csv(df, filename):
     df.to_csv(filename)
 
+data_dir = "data"
+df = create_dataframe(data_dir)
+filename = "data/audio_data.csv"
+create_csv(df, filename)
 
 
