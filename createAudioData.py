@@ -2,10 +2,9 @@ import os
 import scipy.io.wavfile as wav
 import pandas as pd
 from python_speech_features import mfcc, logfbank
-# from pydub import AudioSegment
+from pydub import AudioSegment
 from scipy.signal import stft
 import glob
-import tqdm as loader
 
 
 def create_data(data_dir):
@@ -73,7 +72,6 @@ def is_fraud(filename):
 def get_filename(file, person):
     lastchar_index = file.index(person[-1]) + 2
     return file[lastchar_index:]
-    # return os.fsdecode(file)
 
 
 def create_dataframe(data_dir):
@@ -91,24 +89,23 @@ def create_dataframe(data_dir):
     z = []
     mfccs = []
     filter_bank = []
-
-    counter = 1
+    mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
         if person in ["authentic", "original", "fraud"]:
             continue
         person_dir = get_person_dir(person, data_dir)
-        # person_dir = os.path.realpath(person_dir)
-        # files = os.listdir(person_dir)
         path = person_dir + "/*.wav"
         for audio_file in glob.glob(path):
             print(audio_file)
             rate, stereo = wav.read(audio_file)
+            if len(stereo) == 0:
+                continue
+            mono = stereo[:, 0]
             files.append(audio_file)
             people.append(person)
             rates.append(rate)
             speaker_nums.append(index + 1)
-            mono = stereo[:,0]
             f, t, Zxx = stft(mono, rate, nperseg=200)
             fbank_feat = logfbank(stereo, rate, nfft=1103)
             mfcc_feature = mfcc(stereo, rate, nfft=1103)
@@ -133,7 +130,6 @@ def create_dataframe(data_dir):
                 fraud.append(0)
                 cg.append(0)
                 recorded.append(0)
-            counter += 1
 
     df['file'] = files
     df["person"] = people
@@ -141,7 +137,6 @@ def create_dataframe(data_dir):
     df["speaker_num"] = speaker_nums
     df["frequency"] = freq
     df["voiceprint"] = z
-    df["voiceprint"] = df["voiceprint"].abs().mean()
     df["filename"] = file_names
     df["fraud"] = fraud
     df["authentic"] = authentic
@@ -157,20 +152,12 @@ def create_dataframe(data_dir):
 
 def get_data():
     csv = "data/audio_data.csv"
-    df = pd.DataFrame.from_csv(csv)
+    df = pd.read_csv(csv)
     return df
 
 
 def create_csv(df, filename):
     df.to_csv(filename)
 
-data_dir = "data"
-df = create_dataframe(data_dir)
-print(df.head())
-filename = "/audio_data.csv"
-path = os.path.join(data_dir)
-path = os.path.realpath(path) + filename
-create_csv(df, path)
-df = get_data()
-print(df.head())
+
 
