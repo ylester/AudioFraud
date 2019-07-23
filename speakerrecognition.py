@@ -22,13 +22,3 @@ def identify_speaker(df, X_features, y_features):
     # Making the Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)
     print(cm)
-
-# Test File
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()
