@@ -10,6 +10,15 @@ Currently, there is not a system in place to detect fraudulent computer generate
 
 Design a secure voice recognition system that is able to detect computer generated audio fraud.
 
+## Installation:
+
+```bash
+git clone git@github.com:ylester/AudioFraud.
+cd AudioFraud
+python3 -m virtualenv --python=$pypath .venv
+source .venv/bin/activate
+```
+
 ## Modules:
 
 - Fraud Detection Algorithm
@@ -21,6 +30,7 @@ Design a secure voice recognition system that is able to detect computer generat
 - Wifi Module Connection
     - Will handle data flow to and from the wifi module
 
+![Screen_Output](https://raw.githubusercontent.com/ylester/AudioFraud/master/SMD.png)
 
 
 ### Team Members:
