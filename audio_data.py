@@ -1,6 +1,7 @@
 import os
 import scipy.io.wavfile as wav
 import pandas as pd
+import numpy as np
 from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
 from scipy.signal import stft
@@ -86,13 +87,14 @@ def create_dataframe(data_dir):
     rates = []
     speaker_nums = []
     freq = []
+    zmean = []
     z = []
     mfccs = []
     filter_bank = []
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
-        if person in ["authentic", "original", "fraud", "shawn"]:
+        if person in ["authentic", "original", "fraud", "shawn",  'audio_data.xlsx', 'audio_data.csv']:
             continue
         person_dir = get_person_dir(person, data_dir)
         path = person_dir + "/*.wav"
@@ -112,7 +114,9 @@ def create_dataframe(data_dir):
             filter_bank.append(fbank_feat)
             mfccs.append(mfcc_feature)
             freq.append(f)
+            new_zxx = pd.DataFrame(Zxx.T).abs().mean().values
             z.append(Zxx.T)
+            zmean.append(new_zxx)
             filename = get_filename(audio_file, person)
             file_names.append(filename)
             fraud_value, fraud_type = is_fraud(filename)
@@ -136,8 +140,8 @@ def create_dataframe(data_dir):
     df['rate'] = rates
     df["speaker_num"] = speaker_nums
     df["frequency"] = freq
+    df["voiceprint_mean"] = zmean
     df["voiceprint"] = z
-    df["voiceprint"] = df["voiceprint"].abs()
     df["filename"] = file_names
     df["fraud"] = fraud
     df["authentic"] = authentic
@@ -152,17 +156,61 @@ def create_dataframe(data_dir):
 
 
 def get_data():
-    csv = "data/audio_data.csv"
-    df = pd.read_csv(csv)
+    excel = "data/audio_data.xlsx"
+    df = pd.read_excel(excel)
+    # df = clean_data(df)
     return df
+
+def clean_data(df):
+    cols = ["voiceprint", "filter_bank", "mfcc"]
+    for col in cols:
+        df[col] = df[col].apply(convertStringToArray, col)
+    return df
+
 
 
 def create_csv(df, filename):
     df.to_csv(filename)
 
-data_dir = "data"
-df = create_dataframe(data_dir)
-filename = "data/audio_data.csv"
-create_csv(df, filename)
+def create_excel(df, filename):
+    df.to_excel(filename)
+
+
+def find_parens(s):
+    toret = {}
+    pstack = []
+
+    for i, c in enumerate(s):
+        if c == '[':
+            pstack.append(i)
+        elif c == ']':
+            if len(pstack) == 0:
+                raise IndexError("No matching closing parens at: " + str(i))
+            toret[pstack.pop()] = i
+
+    if len(pstack) > 0:
+        raise IndexError("No matching opening parens at: " + str(pstack.pop()))
+
+    return toret
+def convertStringToArray(string):
+    result = []
+    print(string)
+    array = string[1:-1]
+    parens = find_parens(array)
+    for open_paren in sorted(parens.keys()):
+        start = open_paren + 1
+        end = parens[open_paren]
+        subarray = array[start:end]
+        subarray = subarray.split(" ")
+        subarray = [float(x) for x in subarray]
+        result.append(subarray)
+    return result
+
+# data_dir = "data"
+# df = create_dataframe(data_dir)
+# filename = "data/audio_data.csv"
+# create_csv(df, filename)
+# filename = "data/audio_data.xlsx"
+# create_excel(df, filename)
 
 
