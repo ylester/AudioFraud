@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
+import sklearn as sk
+from io import StringIO
 import scipy.io.wavfile as wav
 from python_speech_features import mfcc
 from python_speech_features import logfbank
@@ -25,6 +27,9 @@ def create_cga_dataframe():
     cg_rates = []
     cg_fraud = []
     cg_auth = []
+    testtry = []
+    scaler = sk.preprocessing.StandardScaler()
+
     df = pd.DataFrame()
 
     for wave_file in glob.glob(cg_path):
@@ -33,15 +38,24 @@ def create_cga_dataframe():
         cg_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1200)
         cg_mfcc.append(mfcc_feature)
+        mfcctest = sk.preprocessing.scale(mfcc_feature, axis=1)
+        testtry.append(mfcctest)
+        # print(type(mfcc_feature))
+        mfcctest_scaled = scaler.fit_transform(mfcctest)
+        mfccscaled = scaler.fit_transform(mfcc_feature)
+        # print(mfccscaled)
         fbank_feat = logfbank(sig, rate, nfft=1200)
         cg_filter_bank.append(fbank_feat)
         cg_fraud.append(1)
         cg_auth.append(0)
 
+
     # df['computer_generated_audio'] = cg_audio
-    df['computer_generated_rates'] = cg_rates
-    df['computer_generated_mfcc'] = cg_mfcc
-    df['computer_generated_filter_bank'] = cg_filter_bank
+    df['rates'] = cg_rates
+    df['mfcc'] = np.array(cg_mfcc).flatten()
+    # df['computer_generated_mfcc'] = df['computer_generated_mfcc'].astype(object)
+    df['filter_bank'] = np.array(cg_filter_bank).flatten()
+    # df['computer_generated_filter_bank']= df['computer_generated_filter_bank'].astype(object)
     df['fraud'] = cg_fraud
     df['authentic'] = cg_auth
 
@@ -54,8 +68,8 @@ def create_aa_dataframe():
     from the audio files and storing the data
     """
 
-    auth_sed = "data/sedrick/*.wav"
-    auth_esh = "data/yesha/*.wav"
+    auth_sed = "og_data/sedrick/*.wav"
+    auth_esh = "og_data/yesha/*.wav"
     auth_audio = []
     auth_mfcc = []
     auth_filter_bank = []
@@ -71,7 +85,7 @@ def create_aa_dataframe():
         auth_audio.append(wave_file)
         auth_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1103)
-        auth_mfcc.append(mfcc_feature)
+        auth_mfcc.append(np.array(mfcc_feature, dtype=int))
         fbank_feat = logfbank(sig, rate, nfft=1103)
         auth_filter_bank.append(fbank_feat)
         auth_fraud.append(0)
@@ -91,16 +105,16 @@ def create_aa_dataframe():
         auth_auth.append(1)
 
     # df2['authentic_audio'] = auth_audio
-    df2['authentic_rates'] = auth_rates
-    df2['authentic_mfcc'] = auth_mfcc
-    df2['authentic_filter_bank'] = auth_filter_bank
+    df2['rates'] = auth_rates
+    df2['mfcc'] = auth_mfcc
+    df2['filter_bank'] = auth_filter_bank
     df2['fraud'] = auth_fraud
     df2['authentic'] = auth_auth
 
-    # csv_loc = "authentic.csv"
-    # df2.to_csv(csv_loc)
+    csv_loc = "authentic.csv"
+    df2.to_csv(csv_loc)
 
-    return df2
+    # return df2
 
 
 def analyze_computer_generated_audio_data(df):
@@ -278,30 +292,29 @@ def analyze_authentic_audio_data(df):
     plt.show()
 
 
-def detect_fraud(cg_df, auth_df, input_audio=None):
+def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
     """
     This module will train the ML module with df inputs to detect whether
     an input audio is fraudulent or non-fraudulent
     """
-
-    X_train, X_test, y_train, y_test = train_test_split(cg_df, auth_df, test_size=0.2)
+    df = pd.concat([cg_df, auth_df], sort=False)
+    print(df['fraud'].values)
+    X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=0)
     classifier = LogisticRegression()
-    classifier.fit(X_train, y_train)
-    y_pred_FRAUD = classifier.predict(X_test)
-    y_pred_AUTH = classifier.predict(y_test)
-    print(y_pred_FRAUD)
-    print(y_pred_AUTH)
-    #
-    # # Calculate Confusion Matrix for FRAUD audio
-    # cm_fraud = confusion_matrix(X_test, y_pred_FRAUD)
-    # print("\nFraudulent Audio Confusion Matrix: ", cm_fraud)
-    #
+    classifier.fit(X_train, y_train.values.ravel())
+    y_pred = classifier.predict(X_test)
+    print(y_pred)
+
+    # Calculate Confusion Matrix for FRAUD audio
+    cm_fraud = confusion_matrix(X_test, y_pred)
+    print("\nFraudulent Audio Confusion Matrix: ", cm_fraud)
+
     # # Calculate Confusion Matrix for AUTHENTIC audio
-    # cm_auth = confusion_matrix(y_test, y_pred_AUTH)
+    # cm_auth = confusion_matrix(y_test, y_pred)
     # print("\nNon-Fraudulent Audio Confusion Matrix: ", cm_auth)
     #
     # # Compute Area Under the Receiver Operating Characteristic Curve (FRAUD)
-    # auc_fraud = roc_auc_score(X_test, y_pred_FRAUD)
+    # auc_fraud = roc_auc_score(X_test, y_pred)
     # print("\nROC AUC (FRAUD): ", auc_fraud)
     #
     # # Compute Area Under the Receiver Operating Characteristic Curve (AUTHENTUC)
@@ -334,10 +347,22 @@ def send_results_to_hardware(*kwargs):
 if __name__ == "__main__":
     computer_generated_audio_data = create_cga_dataframe()[:126]
     # analyze_computer_generated_audio_data(computer_generated_audio_data)
+    # create_aa_dataframe()
     authentic_audio_data = pd.read_csv("authentic.csv")
-    print(authentic_audio_data.head())
+    # print(authentic_audio_data.head())
+    features = ['rates', 'authentic']
+    target = ['fraud']
+
+    # print(authentic_audio_data['authentic_mfcc'].head())
+    # print(computer_generated_audio_data['computer_generated_mfcc'].head())
+    # print(authentic_audio_data.head())
+    # for val in authentic_audio_data['authentic_mfcc']:
+    #     print(val)
+        # test = np.fromstring(val, sep=',')
+        # print(test)
+    # print(authentic_audio_data.head())
     # print([type(int(x)) for x in authentic_audio_data['authentic_mfcc']])
     # analyze_authentic_audio_data(authentic_audio_data)
     # print(computer_generated_audio_data.size)
     # print(computer_generated_audio_data.shape, authentic_audio_data.shape)
-    # detect_fraud(computer_generated_audio_data, authentic_audio_data)
+    detect_fraud(computer_generated_audio_data, authentic_audio_data, features, target)
