@@ -76,7 +76,7 @@ def get_filename(file, person):
 
 
 def create_dataframe(data_dir):
-    df = pd.DataFrame()
+    df = []
     files = []
     file_names = []
     authentic = []
@@ -100,23 +100,34 @@ def create_dataframe(data_dir):
         path = person_dir + "/*.wav"
         for audio_file in glob.glob(path):
             print(audio_file)
+            row = []
             rate, stereo = wav.read(audio_file)
             if len(stereo) == 0:
                 continue
             mono = stereo[:, 0]
+            print(mono.shape)
             files.append(audio_file)
             people.append(person)
             rates.append(rate)
             speaker_nums.append(index + 1)
+
             f, t, Zxx = stft(mono, rate, nperseg=200)
-            fbank_feat = logfbank(stereo, rate, nfft=1103)
-            mfcc_feature = mfcc(stereo, rate, nfft=1103)
-            filter_bank.append(fbank_feat)
-            mfccs.append(mfcc_feature)
-            freq.append(f)
-            new_zxx = pd.DataFrame(Zxx.T).abs().mean().values
+            new_zxx = pd.DataFrame(Zxx.T).abs().mean()
             z.append(Zxx.T)
+
+            row.extend(new_zxx)
+            df.append(row)
             zmean.append(new_zxx)
+
+            # fbank_feat = logfbank(stereo, rate, nfft=1103)
+            # mfcc_feature = mfcc(stereo, rate, nfft=1103)
+            #
+            # filter_bank.append(fbank_feat)
+            # mfccs.append(mfcc_feature)
+            #
+            # freq.append(f)
+
+
             filename = get_filename(audio_file, person)
             file_names.append(filename)
             fraud_value, fraud_type = is_fraud(filename)
@@ -134,23 +145,27 @@ def create_dataframe(data_dir):
                 fraud.append(0)
                 cg.append(0)
                 recorded.append(0)
+            print(row)
+            print()
+            break
 
-    df['file'] = files
-    df["person"] = people
-    df['rate'] = rates
-    df["speaker_num"] = speaker_nums
-    df["frequency"] = freq
-    df["voiceprint_mean"] = zmean
-    df["voiceprint"] = z
-    df["filename"] = file_names
-    df["fraud"] = fraud
-    df["authentic"] = authentic
-    df["recorded"] = recorded
-    df["computer_generated"] = cg
-    df['filter_bank'] = filter_bank
-    df['mfcc'] = mfccs
+    df = pd.DataFrame(df)
+    # df['file'] = files
+    # df["person"] = people
+    # df['rate'] = rates
+    # df["speaker_num"] = speaker_nums
+    # df["frequency"] = freq
+    # df["voiceprint_mean"] = zmean
+    # df["voiceprint"] = z
+    # # df["filename"] = file_names
+    # # df["fraud"] = fraud
+    # # df["authentic"] = authentic
+    # # df["recorded"] = recorded
+    # df["computer_generated"] = cg
+    # df['filter_bank'] = filter_bank
+    # df['mfcc'] = mfccs
 
-    df = df.reindex(sorted(df.columns), axis=1)
+    # df = df.reindex(sorted(df.columns), axis=1)
 
     return df
 
@@ -169,8 +184,7 @@ def clean_data(df):
 
 
 
-def create_csv(df, filename):
-    df.to_csv(filename)
+
 
 def create_excel(df, filename):
     df.to_excel(filename)
@@ -206,11 +220,11 @@ def convertStringToArray(string):
         result.append(subarray)
     return result
 
-# data_dir = "data"
-# df = create_dataframe(data_dir)
-# filename = "data/audio_data.csv"
-# create_csv(df, filename)
-# filename = "data/audio_data.xlsx"
-# create_excel(df, filename)
+data_dir = "data"
+df = create_dataframe(data_dir)
+filename = "data/audio_data.csv"
+df.to_csv(filename)
+filename = "data/audio_data.xlsx"
+df.to_excel(filename)
 
 
