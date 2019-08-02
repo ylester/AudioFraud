@@ -16,9 +16,15 @@ import seaborn as sb
 import matplotlib.patches as mpatches
 
 def clean_data(df):
-    df["voiceprint_mean"] = df["voiceprint_mean"].apply()
+    df["voiceprint_mean"] = df["voiceprint_mean"].apply(convert_to_series)
     # df["speaker_num"] = df["speaker_num"].eval()
     return df
+
+def convert_to_series(string):
+    arr = string[1:-1]
+    arr = arr.split(" ")
+    arr = [float(x) for x in arr]
+    return arr
 
 def extract_features(df, wanted):
     column_names = list(df)
@@ -51,7 +57,12 @@ def identify_speaker(df,features):
 
 def main():
     df = get_data()
+    df = clean_data(df)
+    print(type(df["voiceprint_mean"].iloc(0)))
     features = ["voiceprint_mean", "speaker_num"]
     identify_speaker(df, features)
 
 main()
+
+
+[[2,3], [4,6]] = [[2 6] [4 6]]
