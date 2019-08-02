@@ -366,3 +366,17 @@ if __name__ == "__main__":
     # print(computer_generated_audio_data.size)
     # print(computer_generated_audio_data.shape, authentic_audio_data.shape)
     detect_fraud(computer_generated_audio_data, authentic_audio_data, features, target)
+
+    """ 
+    Action Items:
+    - Need to analyze chart data for the recorded audio to compare against authentic
+    - Need to bring in the master data eventually to use recorded audio
+    - Need to eliminate 'authentic' feature from dataframes
+    - Need to connect with shawn to figure how to encorporate his python script
+    - Figure out how to manipulate the MFCC and FILTER BANK data so that the model could use it
+    - Think of a plan B if all else fails :) 
+    - Update the threshold from the default 0.5 to 0.75 eventually to better fit model
+    - GET MODEL OUTPUTS!
+    - Find a way to graph the training outputs as well
+    - return results to a txt file as backup
+    """
