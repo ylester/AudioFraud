@@ -21,19 +21,16 @@ def create_cga_dataframe():
     """
 
     cg_path = "ClonedSamples/*.wav"
-    cg_audio = []
     cg_mfcc = [] # Cepstrum is the information of rate of change in spectral bands
     cg_filter_bank = []
     cg_rates = []
     cg_fraud = []
-    cg_auth = []
     testtry = []
     scaler = sk.preprocessing.StandardScaler()
 
     df = pd.DataFrame()
 
     for wave_file in glob.glob(cg_path):
-        cg_audio.append(wave_file)
         rate, sig = wav.read(wave_file)
         cg_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1200)
@@ -47,17 +44,13 @@ def create_cga_dataframe():
         fbank_feat = logfbank(sig, rate, nfft=1200)
         cg_filter_bank.append(fbank_feat)
         cg_fraud.append(1)
-        cg_auth.append(0)
 
-
-    # df['computer_generated_audio'] = cg_audio
     df['rates'] = cg_rates
     df['mfcc'] = np.array(cg_mfcc).flatten()
     # df['computer_generated_mfcc'] = df['computer_generated_mfcc'].astype(object)
     df['filter_bank'] = np.array(cg_filter_bank).flatten()
     # df['computer_generated_filter_bank']= df['computer_generated_filter_bank'].astype(object)
     df['fraud'] = cg_fraud
-    df['authentic'] = cg_auth
 
     return df
 
@@ -70,19 +63,16 @@ def create_aa_dataframe():
 
     auth_sed = "og_data/sedrick/*.wav"
     auth_esh = "og_data/yesha/*.wav"
-    auth_audio = []
     auth_mfcc = []
     auth_filter_bank = []
     auth_rates = []
     auth_fraud = []
-    auth_auth = []
     df2 = pd.DataFrame()
 
     for wave_file in glob.glob(auth_esh):
         rate, sig = wav.read(wave_file)
         if len(sig) == 0:
             continue
-        auth_audio.append(wave_file)
         auth_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1103)
         auth_mfcc.append(np.array(mfcc_feature, dtype=int))
@@ -95,21 +85,17 @@ def create_aa_dataframe():
         rate, sig = wav.read(wave_file)
         if len(sig) == 0:
             continue
-        auth_audio.append(wave_file)
         auth_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1103)
         auth_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1103)
         auth_filter_bank.append(fbank_feat)
         auth_fraud.append(0)
-        auth_auth.append(1)
 
-    # df2['authentic_audio'] = auth_audio
     df2['rates'] = auth_rates
     df2['mfcc'] = auth_mfcc
     df2['filter_bank'] = auth_filter_bank
     df2['fraud'] = auth_fraud
-    df2['authentic'] = auth_auth
 
     csv_loc = "authentic.csv"
     df2.to_csv(csv_loc)
