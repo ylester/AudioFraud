@@ -50,7 +50,7 @@ def create_cga_dataframe():
     df['fbank_mean'] = cg_fbank_means
     # csv_loc = "fraud.csv"
     # df.to_csv(csv_loc)
-    return df
+    # return df
 
 
 def create_aa_dataframe():
@@ -351,13 +351,11 @@ def send_results_to_hardware(*kwargs):
 
 
 if __name__ == "__main__":
-    computer_generated_audio_data = create_cga_dataframe()[:126]
-    # analyze_computer_generated_audio_data(computer_generated_audio_data)
-    # create_aa_dataframe()
+    cga_data = pd.read_csv("fraud.csv")[:126]
     authentic_audio_data = pd.read_csv("authentic.csv")
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
-    detect_fraud(computer_generated_audio_data, authentic_audio_data, features, target)
+    # detect_fraud(cga_data, authentic_audio_data, features, target)
 
     """ 
     Action Items:
