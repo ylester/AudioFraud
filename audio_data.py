@@ -89,6 +89,8 @@ def create_dataframe(data_dir):
     z = []
     mfccs = []
     filter_bank = []
+    mean_mfcc = []
+    mean_fbank = []
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
@@ -131,19 +133,25 @@ def create_dataframe(data_dir):
                 cg.append(0)
                 recorded.append(0)
 
+    for i in range(len(mfccs)):
+        mean_fbank.append(np.mean(filter_bank[i]))
+        mean_mfcc.append(np.mean(mfccs[i]))
+
     df['file'] = files
-    df["person"] = people
+    df['person'] = people
     df['rate'] = rates
-    df["speaker_num"] = speaker_nums
-    df["frequency"] = freq
-    df["voiceprint"] = z
-    df["filename"] = file_names
-    df["fraud"] = fraud
-    df["authentic"] = authentic
-    df["recorded"] = recorded
-    df["computer_generated"] = cg
+    df['speaker_num'] = speaker_nums
+    df['frequency'] = freq
+    df['voiceprint'] = z
+    df['filename'] = file_names
+    df['fraud'] = fraud
+    df['authentic'] = authentic
+    df['recorded'] = recorded
+    df['computer_generated'] = cg
     df['filter_bank'] = filter_bank
     df['mfcc'] = mfccs
+    df['mfcc_mean'] = mean_mfcc
+    df['fbank_mean'] = mean_fbank
 
     df = df.reindex(sorted(df.columns), axis=1)
 
