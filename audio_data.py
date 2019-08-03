@@ -4,6 +4,7 @@ import pandas as pd
 from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
 from scipy.signal import stft
+import numpy as np
 import glob
 
 
@@ -111,8 +112,8 @@ def create_dataframe(data_dir):
             f, t, Zxx = stft(mono, rate, nperseg=200)
             fbank_feat = logfbank(stereo, rate, nfft=1103)
             mfcc_feature = mfcc(stereo, rate, nfft=1103)
-            filter_bank.append(fbank_feat)
-            mfccs.append(mfcc_feature)
+            filter_bank.append(np.array(fbank_feat).flatten())
+            mfccs.append(np.array(mfcc_feature).flatten())
             freq.append(f)
             z.append(Zxx.T)
             filename = get_filename(audio_file, person)
@@ -166,6 +167,3 @@ def get_data():
 
 def create_csv(df, filename):
     df.to_csv(filename)
-
-
-
