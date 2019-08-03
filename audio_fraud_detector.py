@@ -336,6 +336,55 @@ def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
     plt.xlabel('False Positive Rate')
     plt.show()
 
+    # Attempt to plot Model Output
+    plt.title('MFCC Mean VS Fbank Mean')
+    plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
+    plt.ylabel('Filter Bank')
+    plt.xlabel('MFCC')
+    plt.legend()
+    plt.show()
+
+    plt.title('MFCC Mean VS Fbank Mean')
+    plt.scatter(cg_df['fbank_mean'], cg_df['mfcc_mean'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['fbank_mean'], auth_df['mfcc_mean'], color='red', label='Authentic')
+    plt.ylabel('MFCC')
+    plt.xlabel('Filter Bank')
+    plt.legend()
+    plt.show()
+
+    plt.title('MFCC Mean VS Rates')
+    plt.scatter(cg_df['mfcc_mean'], cg_df['rates'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['mfcc_mean'], auth_df['rates'], color='red', label='Authentic')
+    plt.ylabel('Rates')
+    plt.xlabel('MFCC')
+    plt.legend()
+    plt.show()
+
+    plt.title('MFCC Mean VS Rates')
+    plt.scatter(cg_df['rates'], cg_df['mfcc_mean'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['rates'], auth_df['mfcc_mean'], color='red', label='Authentic')
+    plt.ylabel('MFCC')
+    plt.xlabel('Rates')
+    plt.legend()
+    plt.show()
+
+    plt.title('Rates VS Filter Bank')
+    plt.scatter(cg_df['rates'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['rates'], auth_df['fbank_mean'], color='red')
+    plt.ylabel('Filter Bank')
+    plt.xlabel('Rates')
+    plt.legend()
+    plt.show()
+
+    plt.title('Rates VS Filter Bank')
+    plt.scatter(cg_df['fbank_mean'], cg_df['rates'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['fbank_mean'], auth_df['rates'], color='red', label='Authentic')
+    plt.ylabel('Rates')
+    plt.xlabel('Filter Bank')
+    plt.legend()
+    plt.show()
+
 
 
 def import_audio_data(*kwargs):
@@ -355,7 +404,7 @@ if __name__ == "__main__":
     authentic_audio_data = pd.read_csv("authentic.csv")
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
-    # detect_fraud(cga_data, authentic_audio_data, features, target)
+    detect_fraud(cga_data, authentic_audio_data, features, target)
 
     """ 
     Action Items:
@@ -366,7 +415,7 @@ if __name__ == "__main__":
     - Figure out how to manipulate the MFCC and FILTER BANK data so that the model could use it
     - Think of a plan B if all else fails :) 
     - Update the threshold from the default 0.5 to 0.75 eventually to better fit model
-    - GET MODEL OUTPUTS!
+    x GET MODEL OUTPUTS! (DONE)
     x Find a way to graph the training outputs as well
     - return results to a txt file as backup
     """
