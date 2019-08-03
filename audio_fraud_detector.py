@@ -48,9 +48,8 @@ def create_cga_dataframe():
     df['fraud'] = cg_fraud
     df['mfcc_mean'] = cg_mfcc_means
     df['fbank_mean'] = cg_fbank_means
-    # csv_loc = "fraud.csv"
-    # df.to_csv(csv_loc)
-    # return df
+    csv_loc = "fraud.csv"
+    df.to_csv(csv_loc)
 
 
 def create_aa_dataframe():
@@ -86,9 +85,9 @@ def create_aa_dataframe():
             continue
         auth_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1103)
-        auth_mfcc.append(np.array(mfcc_feature).flatten())
+        auth_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1103)
-        auth_filter_bank.append(np.array(fbank_feat).flatten())
+        auth_filter_bank.append(fbank_feat)
         auth_fraud.append(0)
 
     for i in range(len(auth_mfcc)):
@@ -101,11 +100,8 @@ def create_aa_dataframe():
     df2['fraud'] = auth_fraud
     df2['mfcc_mean'] = auth_mfcc_means
     df2['fbank_mean'] = auth_fbank_means
-
-    # csv_loc = "authentic.csv"
-    # df2.to_csv(csv_loc)
-
-    # return df2
+    csv_loc = "authentic.csv"
+    df2.to_csv(csv_loc)
 
 
 def analyze_computer_generated_audio_data(df):
@@ -336,7 +332,7 @@ def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
     plt.xlabel('False Positive Rate')
     plt.show()
 
-    # Attempt to plot Model Output
+    # Classifications based on feature pairs
     plt.title('MFCC Mean VS Fbank Mean')
     plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
     plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
@@ -384,6 +380,31 @@ def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
     plt.xlabel('Filter Bank')
     plt.legend()
     plt.show()
+
+    # # Model Output
+    # plt.title('Model Prediction')
+    # plt.scatter(y_pred, cg_df['rates'], color='blue', label='Computer Generated')
+    # plt.scatter(auth_df['fbank_mean'], auth_df['rates'], color='red', label='Authentic')
+    # plt.ylabel('Rates')
+    # plt.xlabel('Filter Bank')
+    # plt.legend()
+    # plt.show()
+
+
+def extract_input_audio_features(audio):
+    df = pd.DataFrame()
+    rate, sig = wav.read(audio)
+    if len(sig) == 0:
+        return 0
+    mfcc_feature = mfcc(sig, rate, nfft=1103)
+    fbank_feat = logfbank(sig, rate, nfft=1103)
+
+    df['rates'] = rate
+    df['mfcc'] = mfcc_feature
+    df['filter_bank'] = fbank_feat
+    df['mfcc_mean'] = np.mean(mfcc_feature)
+    df['fbank_mean'] = np.mean(fbank_feat)
+    return df
 
 
 
