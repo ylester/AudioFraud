@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import sklearn as sk
+import random
 import scipy.io.wavfile as wav
 from python_speech_features import mfcc
 from python_speech_features import logfbank
@@ -25,8 +26,6 @@ def create_cga_dataframe():
     cg_fraud = []
     cg_mfcc_means = []
     cg_fbank_means = []
-
-
     df = pd.DataFrame()
 
     for wave_file in glob.glob(cg_path):
@@ -102,6 +101,47 @@ def create_aa_dataframe():
     df2['fbank_mean'] = auth_fbank_means
     csv_loc = "authentic.csv"
     df2.to_csv(csv_loc)
+
+
+def create_ra_dataframe():
+    """
+        This module creates a computer generated audio data frame
+        by extracting features from the audio files and storing
+        the data
+        """
+
+    r_path = "data/fraud/recorded/*.wav"
+    r_mfcc = []  # Cepstrum is the information of rate of change in spectral bands
+    r_filter_bank = []
+    r_rates = []
+    r_fraud = []
+    r_mfcc_means = []
+    r_fbank_means = []
+
+    df = pd.DataFrame()
+
+    for wave_file in glob.glob(r_path):
+        rate, sig = wav.read(wave_file)
+        if len(sig) == 0:
+            continue
+        r_rates.append(rate)
+        mfcc_feature = mfcc(sig, rate, nfft=1103)
+        r_mfcc.append(mfcc_feature)
+        fbank_feat = logfbank(sig, rate, nfft=1103)
+        r_filter_bank.append(fbank_feat)
+        r_mfcc_means.append(np.mean(mfcc_feature))
+        r_fbank_means.append(np.mean(fbank_feat))
+        r_fraud.append(1)
+
+
+    df['rates'] = r_rates
+    df['mfcc'] = r_mfcc
+    df['filter_bank'] = r_filter_bank
+    df['fraud'] = r_fraud
+    df['mfcc_mean'] = r_mfcc_means
+    df['fbank_mean'] = r_fbank_means
+    csv_loc = "recorded.csv"
+    df.to_csv(csv_loc)
 
 
 def analyze_computer_generated_audio_data(df):
@@ -279,12 +319,12 @@ def analyze_authentic_audio_data(df):
     plt.show()
 
 
-def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
+def train_model(cg_df, auth_df, rec_df, features, target):
     """
     This module will train the ML module with df inputs to detect whether
     an input audio is fraudulent or non-fraudulent
     """
-    df = pd.concat([cg_df, auth_df], sort=False)
+    df = pd.concat([cg_df, auth_df, rec_df], sort=False)
     X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=None)
     classifier = LogisticRegression()
     classifier.fit(X_train, y_train)
@@ -292,25 +332,25 @@ def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
 
     # Calculate Confusion Matrix for FRAUD audio
     cm_fraud = confusion_matrix(y_test, y_pred)
-    print("Fraudulent Audio Confusion Matrix:", cm_fraud)
+    print "Fraudulent Audio Confusion Matrix:", cm_fraud
 
     # Compute Area Under the Receiver Operating Characteristic Curve (FRAUD)
     auc_fraud = roc_auc_score(y_test, y_pred)
-    print("ROC AUC (FRAUD): ", auc_fraud)
+    print "ROC AUC (FRAUD): ", auc_fraud
 
     # Compute F-Score (FRAUD)
     fscore_fraud = f1_score(y_test, y_pred)
-    print("F-Score Fraud: ", fscore_fraud)
+    print "F-Score Fraud: ", fscore_fraud
 
     # Compute Precision Recall Curve
     precision, recall, thresholds = precision_recall_curve(y_test, y_pred)
-    print("Precision:", precision)
-    print("Recall:", recall)
-    print("Threshold:", thresholds)
+    print "Precision:", precision
+    print "Recall:", recall
+    print "Threshold:", thresholds
     pr_auc = sk.metrics.auc(recall, precision)
     fpr, tpr, threshold = sk.metrics.roc_curve(y_test, y_pred)
     roc_auc = sk.metrics.auc(fpr, tpr)
-    print("PR_AUC:", pr_auc)
+    print "PR_AUC:", pr_auc
 
     # Training Plots
     plt.title("Precision-Recall vs Threshold Chart")
@@ -336,59 +376,41 @@ def detect_fraud(cg_df, auth_df, features, target, input_audio=None):
     plt.title('MFCC Mean VS Fbank Mean')
     plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
     plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
+    plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
     plt.ylabel('Filter Bank')
     plt.xlabel('MFCC')
-    plt.legend()
-    plt.show()
-
-    plt.title('MFCC Mean VS Fbank Mean')
-    plt.scatter(cg_df['fbank_mean'], cg_df['mfcc_mean'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['fbank_mean'], auth_df['mfcc_mean'], color='red', label='Authentic')
-    plt.ylabel('MFCC')
-    plt.xlabel('Filter Bank')
     plt.legend()
     plt.show()
 
     plt.title('MFCC Mean VS Rates')
     plt.scatter(cg_df['mfcc_mean'], cg_df['rates'], color='blue', label='Computer Generated')
     plt.scatter(auth_df['mfcc_mean'], auth_df['rates'], color='red', label='Authentic')
+    plt.scatter(rec_df['mfcc_mean'], rec_df['rates'], color='green', label='Recorded')
     plt.ylabel('Rates')
     plt.xlabel('MFCC')
     plt.legend()
     plt.show()
 
-    plt.title('MFCC Mean VS Rates')
-    plt.scatter(cg_df['rates'], cg_df['mfcc_mean'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['rates'], auth_df['mfcc_mean'], color='red', label='Authentic')
-    plt.ylabel('MFCC')
-    plt.xlabel('Rates')
-    plt.legend()
-    plt.show()
-
     plt.title('Rates VS Filter Bank')
     plt.scatter(cg_df['rates'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['rates'], auth_df['fbank_mean'], color='red')
+    plt.scatter(auth_df['rates'], auth_df['fbank_mean'], color='red', label='Authentic')
+    plt.scatter(rec_df['rates'], rec_df['fbank_mean'], color='green', label='Recorded')
     plt.ylabel('Filter Bank')
     plt.xlabel('Rates')
     plt.legend()
     plt.show()
 
-    plt.title('Rates VS Filter Bank')
-    plt.scatter(cg_df['fbank_mean'], cg_df['rates'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['fbank_mean'], auth_df['rates'], color='red', label='Authentic')
-    plt.ylabel('Rates')
-    plt.xlabel('Filter Bank')
-    plt.legend()
-    plt.show()
+    print
+    return classifier
 
-    # # Model Output
-    # plt.title('Model Prediction')
-    # plt.scatter(y_pred, cg_df['rates'], color='blue', label='Computer Generated')
-    # plt.scatter(auth_df['fbank_mean'], auth_df['rates'], color='red', label='Authentic')
-    # plt.ylabel('Rates')
-    # plt.xlabel('Filter Bank')
-    # plt.legend()
-    # plt.show()
+
+def detect_fraud(clf, input_audio=None):
+    result = clf.predict(input_audio)
+    if result == 1:
+        print("Input Audio Marked as [FRAUD]")
+    else:
+        print("Input Audio Marked as [AUTHENTIC]")
+    np.savetxt("output.txt", result)
 
 
 def extract_input_audio_features(audio):
@@ -396,16 +418,13 @@ def extract_input_audio_features(audio):
     rate, sig = wav.read(audio)
     if len(sig) == 0:
         return 0
-    mfcc_feature = mfcc(sig, rate, nfft=1103)
-    fbank_feat = logfbank(sig, rate, nfft=1103)
+    mfcc_feature = mfcc(sig, rate, nfft=1200)
+    fbank_feat = logfbank(sig, rate, nfft=1200)
 
-    df['rates'] = rate
-    df['mfcc'] = mfcc_feature
-    df['filter_bank'] = fbank_feat
+    df['rates'] = [rate]
     df['mfcc_mean'] = np.mean(mfcc_feature)
     df['fbank_mean'] = np.mean(fbank_feat)
     return df
-
 
 
 def import_audio_data(*kwargs):
@@ -421,22 +440,17 @@ def send_results_to_hardware(*kwargs):
 
 
 if __name__ == "__main__":
-    cga_data = pd.read_csv("fraud.csv")[:126]
-    authentic_audio_data = pd.read_csv("authentic.csv")
+    cga_data = pd.read_csv("fraud.csv").sample(126, random_state=1)
+    ra_data = pd.read_csv("recorded.csv").sample(126, random_state=1)
+    aa_data = pd.read_csv("authentic.csv").sample(126, random_state=1)
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
-    detect_fraud(cga_data, authentic_audio_data, features, target)
 
-    """ 
-    Action Items:
-    - Need to analyze chart data for the recorded audio to compare against authentic
-    - Need to bring in the master data eventually to use recorded audio
-    x Need to eliminate 'authentic' feature from dataframes (DONE)
-    - Need to connect with shawn to figure how to encorporate his python script
-    - Figure out how to manipulate the MFCC and FILTER BANK data so that the model could use it
-    - Think of a plan B if all else fails :) 
-    - Update the threshold from the default 0.5 to 0.75 eventually to better fit model
-    x GET MODEL OUTPUTS! (DONE)
-    x Find a way to graph the training outputs as well
-    - return results to a txt file as backup
-    """
+    auth_path = "data/authentic/*.wav"
+    fraud_path = "data/fraud/recorded/*.wav"
+    random_fraud_audio = random.choice(glob.glob(fraud_path))
+    random_auth_audio = random.choice(glob.glob(auth_path))
+
+    example_audio = extract_input_audio_features(random_fraud_audio)
+    clf = train_model(cga_data, aa_data, ra_data, features, target)
+    detect_fraud(clf, example_audio)
