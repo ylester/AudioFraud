@@ -352,53 +352,53 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     roc_auc = sk.metrics.auc(fpr, tpr)
     print "PR_AUC:", pr_auc
 
-    # Training Plots
-    plt.title("Precision-Recall vs Threshold Chart")
-    plt.plot(thresholds, precision[: -1], "b--", label="Precision")
-    plt.plot(thresholds, recall[: -1], "r--", label="Recall")
-    plt.ylabel("Precision, Recall")
-    plt.xlabel("Threshold")
-    plt.legend(loc="lower left")
-    plt.ylim([0, 1])
-    plt.show()
-
-    plt.title('Receiver Operating Characteristic')
-    plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
-    plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1], 'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.show()
-
-    # Classifications based on feature pairs
-    plt.title('MFCC Mean VS Fbank Mean')
-    plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
-    plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
-    plt.ylabel('Filter Bank')
-    plt.xlabel('MFCC')
-    plt.legend()
-    plt.show()
-
-    plt.title('MFCC Mean VS Rates')
-    plt.scatter(cg_df['mfcc_mean'], cg_df['rates'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['mfcc_mean'], auth_df['rates'], color='red', label='Authentic')
-    plt.scatter(rec_df['mfcc_mean'], rec_df['rates'], color='green', label='Recorded')
-    plt.ylabel('Rates')
-    plt.xlabel('MFCC')
-    plt.legend()
-    plt.show()
-
-    plt.title('Rates VS Filter Bank')
-    plt.scatter(cg_df['rates'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
-    plt.scatter(auth_df['rates'], auth_df['fbank_mean'], color='red', label='Authentic')
-    plt.scatter(rec_df['rates'], rec_df['fbank_mean'], color='green', label='Recorded')
-    plt.ylabel('Filter Bank')
-    plt.xlabel('Rates')
-    plt.legend()
-    plt.show()
+    # # Training Plots
+    # plt.title("Precision-Recall vs Threshold Chart")
+    # plt.plot(thresholds, precision[: -1], "b--", label="Precision")
+    # plt.plot(thresholds, recall[: -1], "r--", label="Recall")
+    # plt.ylabel("Precision, Recall")
+    # plt.xlabel("Threshold")
+    # plt.legend(loc="lower left")
+    # plt.ylim([0, 1])
+    # plt.show()
+    #
+    # plt.title('Receiver Operating Characteristic')
+    # plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
+    # plt.legend(loc='lower right')
+    # plt.plot([0, 1], [0, 1], 'r--')
+    # plt.xlim([0, 1])
+    # plt.ylim([0, 1])
+    # plt.ylabel('True Positive Rate')
+    # plt.xlabel('False Positive Rate')
+    # plt.show()
+    #
+    # # Classifications based on feature pairs
+    # plt.title('MFCC Mean VS Fbank Mean')
+    # plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
+    # plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
+    # plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
+    # plt.ylabel('Filter Bank')
+    # plt.xlabel('MFCC')
+    # plt.legend()
+    # plt.show()
+    #
+    # plt.title('MFCC Mean VS Rates')
+    # plt.scatter(cg_df['mfcc_mean'], cg_df['rates'], color='blue', label='Computer Generated')
+    # plt.scatter(auth_df['mfcc_mean'], auth_df['rates'], color='red', label='Authentic')
+    # plt.scatter(rec_df['mfcc_mean'], rec_df['rates'], color='green', label='Recorded')
+    # plt.ylabel('Rates')
+    # plt.xlabel('MFCC')
+    # plt.legend()
+    # plt.show()
+    #
+    # plt.title('Rates VS Filter Bank')
+    # plt.scatter(cg_df['rates'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
+    # plt.scatter(auth_df['rates'], auth_df['fbank_mean'], color='red', label='Authentic')
+    # plt.scatter(rec_df['rates'], rec_df['fbank_mean'], color='green', label='Recorded')
+    # plt.ylabel('Filter Bank')
+    # plt.xlabel('Rates')
+    # plt.legend()
+    # plt.show()
 
     print
     return classifier
@@ -437,6 +437,18 @@ def send_results_to_hardware(*kwargs):
     pass
 
 
+def plot_result(data, cg_df, auth_df, rec_df):
+    plt.title('Classification For Input Data')
+    plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
+    plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
+    plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
+    plt.scatter(data['mfcc_mean'], data['fbank_mean'], color='black', label='Predicted')
+    plt.ylabel('Filter Bank')
+    plt.xlabel('MFCC')
+    plt.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
     cga_data = pd.read_csv("fraud.csv").sample(126, random_state=1)
     ra_data = pd.read_csv("recorded.csv").sample(126, random_state=1)
@@ -449,6 +461,7 @@ if __name__ == "__main__":
     random_fraud_audio = random.choice(glob.glob(fraud_path))
     random_auth_audio = random.choice(glob.glob(auth_path))
 
-    example_audio = extract_input_audio_features(random_fraud_audio)
+    example_audio = extract_input_audio_features(random_auth_audio)
+    plot_result(example_audio, cga_data, aa_data, ra_data)
     clf = train_model(cga_data, aa_data, ra_data, features, target)
     detect_fraud(clf, example_audio)
