@@ -429,13 +429,11 @@ def extract_input_audio_features(audio):
 
 def import_audio_data(*kwargs):
     # Need to import Shawn's Module
-    # that communicates with the wifi module
     pass
 
 
 def send_results_to_hardware(*kwargs):
-    # Need to import Shawn's Module 
-    # that communicates with the wifi module
+    # Need to import Shawn's Module
     pass
 
 
