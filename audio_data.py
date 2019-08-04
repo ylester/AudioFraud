@@ -6,6 +6,8 @@ from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
 from scipy.signal import stft
 import glob
+import seaborn as sb
+
 
 
 def create_data(data_dir):
@@ -76,7 +78,6 @@ def get_filename(file, person):
 
 
 def create_dataframe(data_dir):
-    df = []
     files = []
     file_names = []
     authentic = []
@@ -87,10 +88,13 @@ def create_dataframe(data_dir):
     rates = []
     speaker_nums = []
     freq = []
-    zmean = []
     z = []
+    zmean = []
     mfccs = []
+    mfcc_mean = []
     filter_bank = []
+    filter_bank_mean = []
+
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
@@ -100,34 +104,31 @@ def create_dataframe(data_dir):
         path = person_dir + "/*.wav"
         for audio_file in glob.glob(path):
             print(audio_file)
-            row = []
             rate, stereo = wav.read(audio_file)
             if len(stereo) == 0:
                 continue
             mono = stereo[:, 0]
-            print(mono.shape)
             files.append(audio_file)
             people.append(person)
             rates.append(rate)
             speaker_nums.append(index + 1)
 
             f, t, Zxx = stft(mono, rate, nperseg=200)
-            new_zxx = pd.DataFrame(Zxx.T).abs().mean()
             z.append(Zxx.T)
-
-            row.extend(new_zxx)
-            df.append(row)
+            new_zxx = np.mean(Zxx.T)
             zmean.append(new_zxx)
 
-            # fbank_feat = logfbank(stereo, rate, nfft=1103)
-            # mfcc_feature = mfcc(stereo, rate, nfft=1103)
-            #
-            # filter_bank.append(fbank_feat)
-            # mfccs.append(mfcc_feature)
-            #
-            # freq.append(f)
+            fbank_feat = logfbank(stereo, rate, nfft=1103)
+            filter_bank.append(fbank_feat)
+            fbankmean = np.mean(fbank_feat)
+            filter_bank_mean.append(fbankmean)
 
+            mfcc_feature = mfcc(stereo, rate, nfft=1103)
+            mfccs.append(mfcc_feature)
+            mfccmean = np.mean(mfcc_feature)
+            mfcc_mean.append(mfccmean)
 
+            freq.append(f)
             filename = get_filename(audio_file, person)
             file_names.append(filename)
             fraud_value, fraud_type = is_fraud(filename)
@@ -145,35 +146,34 @@ def create_dataframe(data_dir):
                 fraud.append(0)
                 cg.append(0)
                 recorded.append(0)
-            print(row)
-            print()
-            break
 
-    df = pd.DataFrame(df)
-    # df['file'] = files
-    # df["person"] = people
-    # df['rate'] = rates
-    # df["speaker_num"] = speaker_nums
-    # df["frequency"] = freq
-    # df["voiceprint_mean"] = zmean
-    # df["voiceprint"] = z
-    # # df["filename"] = file_names
-    # # df["fraud"] = fraud
-    # # df["authentic"] = authentic
-    # # df["recorded"] = recorded
-    # df["computer_generated"] = cg
+    df = pd.DataFrame()
+    df['file'] = files
+    df["person"] = people
+    df['rate'] = rates
+    df["speaker_num"] = speaker_nums
+    df["frequency"] = freq
+    df["voiceprint_mean"] = zmean
+    df["voiceprint"] = z
+    df["filename"] = file_names
+    df["fraud"] = fraud
+    df["authentic"] = authentic
+    df["recorded"] = recorded
+    df["computer_generated"] = cg
+    df["fbankmean"] = filter_bank_mean
+    df["mfcc_mean"] = mfcc_mean
+
     # df['filter_bank'] = filter_bank
     # df['mfcc'] = mfccs
 
-    # df = df.reindex(sorted(df.columns), axis=1)
+    df = df.reindex(sorted(df.columns), axis=1)
 
     return df
 
 
 def get_data():
-    excel = "data/audio_data.xlsx"
-    df = pd.read_excel(excel)
-    # df = clean_data(df)
+    csv = "data/audio_data.csv"
+    df = pd.read_csv(csv)
     return df
 
 def clean_data(df):
@@ -183,48 +183,9 @@ def clean_data(df):
     return df
 
 
+def create_csv(df, filename):
+    df.to_csv(filename)
 
 
-
-def create_excel(df, filename):
-    df.to_excel(filename)
-
-
-def find_parens(s):
-    toret = {}
-    pstack = []
-
-    for i, c in enumerate(s):
-        if c == '[':
-            pstack.append(i)
-        elif c == ']':
-            if len(pstack) == 0:
-                raise IndexError("No matching closing parens at: " + str(i))
-            toret[pstack.pop()] = i
-
-    if len(pstack) > 0:
-        raise IndexError("No matching opening parens at: " + str(pstack.pop()))
-
-    return toret
-def convertStringToArray(string):
-    result = []
-    print(string)
-    array = string[1:-1]
-    parens = find_parens(array)
-    for open_paren in sorted(parens.keys()):
-        start = open_paren + 1
-        end = parens[open_paren]
-        subarray = array[start:end]
-        subarray = subarray.split(" ")
-        subarray = [float(x) for x in subarray]
-        result.append(subarray)
-    return result
-
-data_dir = "data"
-df = create_dataframe(data_dir)
-filename = "data/audio_data.csv"
-df.to_csv(filename)
-filename = "data/audio_data.xlsx"
-df.to_excel(filename)
 
 
