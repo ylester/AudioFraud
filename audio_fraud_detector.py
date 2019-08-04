@@ -36,11 +36,9 @@ def create_cga_dataframe():
         cg_mfcc.append(mfcc_feature)
         fbank_feat = logfbank(sig, rate, nfft=1200)
         cg_filter_bank.append(fbank_feat)
+        cg_mfcc_means.append(np.mean(mfcc_feature))
+        cg_fbank_means.append(np.mean(fbank_feat))
         cg_fraud.append(1)
-
-    for i in range(len(cg_mfcc)):
-        cg_mfcc_means.append(np.mean(cg_mfcc[i]))
-        cg_fbank_means.append(np.mean(cg_filter_bank[i]))
 
     df['rates'] = cg_rates
     df['mfcc'] = np.array(cg_mfcc).flatten()
@@ -66,9 +64,8 @@ def create_aa_dataframe():
     auth_mfcc_means = []
     auth_fbank_means = []
     df2 = pd.DataFrame()
-    count = 0
+
     for wave_file in glob.glob(path):
-        count += 1
         rate, sig = wav.read(wave_file)
         if len(sig) == 0:
             continue
@@ -80,7 +77,6 @@ def create_aa_dataframe():
         auth_mfcc_means.append(np.mean(mfcc_feature))
         auth_fbank_means.append(np.mean(fbank_feat))
         auth_fraud.append(0)
-        print(count)
 
     df2['rates'] = auth_rates
     df2['mfcc'] = auth_mfcc
@@ -100,13 +96,12 @@ def create_ra_dataframe():
         """
 
     r_path = "data/fraud/recorded/*.wav"
-    r_mfcc = []  # Cepstrum is the information of rate of change in spectral bands
+    r_mfcc = []
     r_filter_bank = []
     r_rates = []
     r_fraud = []
     r_mfcc_means = []
     r_fbank_means = []
-
     df = pd.DataFrame()
 
     for wave_file in glob.glob(r_path):
@@ -114,14 +109,13 @@ def create_ra_dataframe():
         if len(sig) == 0:
             continue
         r_rates.append(rate)
-        mfcc_feature = mfcc(sig, rate, nfft=1103)
+        mfcc_feature = mfcc(sig, rate, nfft=1200)
         r_mfcc.append(mfcc_feature)
-        fbank_feat = logfbank(sig, rate, nfft=1103)
+        fbank_feat = logfbank(sig, rate, nfft=1200)
         r_filter_bank.append(fbank_feat)
         r_mfcc_means.append(np.mean(mfcc_feature))
         r_fbank_means.append(np.mean(fbank_feat))
         r_fraud.append(1)
-
 
     df['rates'] = r_rates
     df['mfcc'] = r_mfcc
@@ -314,7 +308,7 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     an input audio is fraudulent or non-fraudulent
     """
     df = pd.concat([cg_df, auth_df, rec_df], sort=False)
-    X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=None)
+    X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=1)
     classifier = LogisticRegression()
     classifier.fit(X_train, y_train)
     # y_pred = classifier.predict(X_test)
@@ -443,19 +437,23 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 
 if __name__ == "__main__":
-    cga_data = pd.read_csv("fraud.csv").sample(126)
-    ra_data = pd.read_csv("recorded.csv").sample(126)
-    aa_data = pd.read_csv("authentic.csv").sample(126)
+    cga_data = pd.read_csv("fraud.csv")[:120]
+    ra_data = pd.read_csv("recorded.csv")[:120]
+    aa_data = pd.read_csv("authentic.csv")[:120]
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
 
     # Test To Show Working Model
-    auth_path = "data/authentic/*.wav"
-    fraud_path = "data/fraud/recorded/*.wav"
-    random_fraud_audio = random.choice(glob.glob(fraud_path))
-    random_auth_audio = random.choice(glob.glob(auth_path))
+    random_recorded = pd.read_csv("recorded.csv")[features][120:].sample(1)
+    random_auth = pd.read_csv("authentic.csv")[features][120:].sample(1)
+    random_cg = pd.read_csv("fraud.csv")[features][120:].sample(1)
 
-    example_audio = extract_input_audio_features(random_fraud_audio)
+    example_audio = random_recorded
+
+    # input_audio_path = "data/authentic/*.wav"
+    # random_pick = random.choice(glob.glob(input_audio_path))
+    # example_audio = extract_input_audio_features(random_pick)
+
     plot_result(example_audio, cga_data, aa_data, ra_data)
     clf = train_model(cga_data, aa_data, ra_data, features, target)
     detect_fraud(clf, example_audio)
