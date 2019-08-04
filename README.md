@@ -17,7 +17,7 @@ git clone git@github.com:ylester/AudioFraud.
 cd AudioFraud
 python3 -m virtualenv --python=$pypath .venv
 source .venv/bin/activate
-pip install -r requirements.txt 
+pip3 install -r requirements.txt 
 ```
 
 ## Modules:
