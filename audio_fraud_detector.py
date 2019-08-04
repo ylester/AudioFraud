@@ -9,6 +9,7 @@ from python_speech_features import mfcc
 from python_speech_features import logfbank
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import f1_score, roc_auc_score, confusion_matrix, precision_recall_curve
 
 
@@ -57,8 +58,7 @@ def create_aa_dataframe():
     from the audio files and storing the data
     """
 
-    auth_sed = "og_data/sedrick/*.wav"
-    auth_esh = "og_data/yesha/*.wav"
+    path = "data/og_data/*/*.wav"
     auth_mfcc = []
     auth_filter_bank = []
     auth_rates = []
@@ -66,32 +66,21 @@ def create_aa_dataframe():
     auth_mfcc_means = []
     auth_fbank_means = []
     df2 = pd.DataFrame()
-
-    for wave_file in glob.glob(auth_esh):
+    count = 0
+    for wave_file in glob.glob(path):
+        count += 1
         rate, sig = wav.read(wave_file)
         if len(sig) == 0:
             continue
         auth_rates.append(rate)
-        mfcc_feature = mfcc(sig, rate, nfft=1103)
-        auth_mfcc.append(np.array(mfcc_feature).flatten())
-        fbank_feat = logfbank(sig, rate, nfft=1103)
-        auth_filter_bank.append(np.array(fbank_feat).flatten())
-        auth_fraud.append(0)
-
-    for wave_file in glob.glob(auth_sed):
-        rate, sig = wav.read(wave_file)
-        if len(sig) == 0:
-            continue
-        auth_rates.append(rate)
-        mfcc_feature = mfcc(sig, rate, nfft=1103)
+        mfcc_feature = mfcc(sig, rate, nfft=1200)
         auth_mfcc.append(mfcc_feature)
-        fbank_feat = logfbank(sig, rate, nfft=1103)
+        fbank_feat = logfbank(sig, rate, nfft=1200)
         auth_filter_bank.append(fbank_feat)
+        auth_mfcc_means.append(np.mean(mfcc_feature))
+        auth_fbank_means.append(np.mean(fbank_feat))
         auth_fraud.append(0)
-
-    for i in range(len(auth_mfcc)):
-        auth_mfcc_means.append(np.mean(auth_mfcc[i]))
-        auth_fbank_means.append(np.mean(auth_filter_bank[i]))
+        print(count)
 
     df2['rates'] = auth_rates
     df2['mfcc'] = auth_mfcc
@@ -328,7 +317,11 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=None)
     classifier = LogisticRegression()
     classifier.fit(X_train, y_train)
-    y_pred = classifier.predict(X_test)
+    # y_pred = classifier.predict(X_test)
+
+    clf = KNeighborsClassifier()
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
 
     # Calculate Confusion Matrix for FRAUD audio
     cm_fraud = confusion_matrix(y_test, y_pred)
@@ -401,7 +394,7 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     # plt.show()
 
     print
-    return classifier
+    return clf
 
 
 def detect_fraud(clf, input_audio=None):
@@ -450,18 +443,19 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 
 if __name__ == "__main__":
-    cga_data = pd.read_csv("fraud.csv").sample(126, random_state=1)
-    ra_data = pd.read_csv("recorded.csv").sample(126, random_state=1)
-    aa_data = pd.read_csv("authentic.csv").sample(126, random_state=1)
+    cga_data = pd.read_csv("fraud.csv").sample(126)
+    ra_data = pd.read_csv("recorded.csv").sample(126)
+    aa_data = pd.read_csv("authentic.csv").sample(126)
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
 
+    # Test To Show Working Model
     auth_path = "data/authentic/*.wav"
     fraud_path = "data/fraud/recorded/*.wav"
     random_fraud_audio = random.choice(glob.glob(fraud_path))
     random_auth_audio = random.choice(glob.glob(auth_path))
 
-    example_audio = extract_input_audio_features(random_auth_audio)
+    example_audio = extract_input_audio_features(random_fraud_audio)
     plot_result(example_audio, cga_data, aa_data, ra_data)
     clf = train_model(cga_data, aa_data, ra_data, features, target)
     detect_fraud(clf, example_audio)
