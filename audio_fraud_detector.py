@@ -20,7 +20,7 @@ def create_cga_dataframe():
     the data
     """
 
-    cg_path = "ClonedSamples/*.wav"
+    cg_path = "data/ClonedSamples/*.wav"
     cg_mfcc = [] # Cepstrum is the information of rate of change in spectral bands
     cg_filter_bank = []
     cg_rates = []
