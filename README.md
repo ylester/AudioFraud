@@ -8,7 +8,7 @@ Currently, there is not a system in place to detect fraudulent computer generate
 
 ## Solution:
 
-Design a secure voice recognition system that is able to detect computer generated audio fraud.
+Design a secure voice recognition system that is able to detect computer generated and recorded audio fraud.
 
 ## Installation:
 
