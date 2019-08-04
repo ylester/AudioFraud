@@ -437,16 +437,16 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 
 if __name__ == "__main__":
-    cga_data = pd.read_csv("fraud.csv")[:120]
-    ra_data = pd.read_csv("recorded.csv")[:120]
-    aa_data = pd.read_csv("authentic.csv")[:120]
+    cga_data = pd.read_csv("data/fraud.csv")[:120]
+    ra_data = pd.read_csv("data/recorded.csv")[:120]
+    aa_data = pd.read_csv("data/authentic.csv")[:120]
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
 
     # Test To Show Working Model
-    random_recorded = pd.read_csv("recorded.csv")[features][120:].sample(1)
-    random_auth = pd.read_csv("authentic.csv")[features][120:].sample(1)
-    random_cg = pd.read_csv("fraud.csv")[features][120:].sample(1)
+    random_recorded = pd.read_csv("data/recorded.csv")[features][120:].sample(1)
+    random_auth = pd.read_csv("data/authentic.csv")[features][120:].sample(1)
+    random_cg = pd.read_csv("data/fraud.csv")[features][120:].sample(1)
 
     example_audio = random_recorded
 
