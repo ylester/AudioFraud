@@ -19,7 +19,7 @@ def create_cga_dataframe():
     the data
     """
 
-    cg_path = "data/ClonedSamples/*.wav"
+    cg_path = "data/computer_generated_audio/*/*.wav"
     cg_mfcc = [] # Cepstrum is the information of rate of change in spectral bands
     cg_filter_bank = []
     cg_rates = []
@@ -29,6 +29,7 @@ def create_cga_dataframe():
     df = pd.DataFrame()
 
     for wave_file in glob.glob(cg_path):
+        print(wave_file)
         rate, sig = wav.read(wave_file)
         cg_rates.append(rate)
         mfcc_feature = mfcc(sig, rate, nfft=1200)
@@ -40,13 +41,14 @@ def create_cga_dataframe():
         cg_fraud.append(1)
 
     df['rates'] = cg_rates
-    df['mfcc'] = np.array(cg_mfcc).flatten()
-    df['filter_bank'] = np.array(cg_filter_bank).flatten()
+    df['mfcc'] = cg_mfcc
+    df['filter_bank'] = cg_filter_bank
     df['fraud'] = cg_fraud
     df['mfcc_mean'] = cg_mfcc_means
     df['fbank_mean'] = cg_fbank_means
-    csv_loc = "fraud.csv"
+    csv_loc = "data/computer_generated.csv"
     df.to_csv(csv_loc)
+    # return df
 
 
 def create_aa_dataframe():
@@ -55,7 +57,7 @@ def create_aa_dataframe():
     from the audio files and storing the data
     """
 
-    path = "data/og_data/*/*.wav"
+    path = "data/authentic/*.wav"
     auth_mfcc = []
     auth_filter_bank = []
     auth_rates = []
@@ -83,7 +85,7 @@ def create_aa_dataframe():
     df2['fraud'] = auth_fraud
     df2['mfcc_mean'] = auth_mfcc_means
     df2['fbank_mean'] = auth_fbank_means
-    csv_loc = "authentic.csv"
+    csv_loc = "data/authentic.csv"
     df2.to_csv(csv_loc)
 
 
@@ -122,7 +124,7 @@ def create_ra_dataframe():
     df['fraud'] = r_fraud
     df['mfcc_mean'] = r_mfcc_means
     df['fbank_mean'] = r_fbank_means
-    csv_loc = "recorded.csv"
+    csv_loc = "data/recorded.csv"
     df.to_csv(csv_loc)
 
 
@@ -448,23 +450,26 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 
 if __name__ == "__main__":
-    print
-    cga_data = pd.read_csv("data/fraud.csv")[:120]
-    ra_data = pd.read_csv("data/recorded.csv")[:120]
-    aa_data = pd.read_csv("data/authentic.csv")[:120]
+    # Add everyone else's computer gen
+    cga_data = pd.read_csv("data/computer_generated.csv")
+    cga_data = pd.concat([cga_data, cga_data], sort=False)[:200]
+    ra_data = pd.read_csv("data/recorded.csv")[:200]
+    aa_data = pd.read_csv("data/authentic.csv")[:200]
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
 
+    print len(ra_data) , len(aa_data), len(cga_data)
+
     # Test To Show Working Model
-    random_recorded = pd.read_csv("data/recorded.csv")[features][120:].sample(1)
-    random_auth = pd.read_csv("data/authentic.csv")[features][120:].sample(1)
-    random_cg = pd.read_csv("data/fraud.csv")[features][120:].sample(1)
+    random_recorded = pd.read_csv("data/recorded.csv")[features][200:].sample(1)
+    random_auth = pd.read_csv("data/authentic.csv")[features][200:].sample(1)
+    random_cg = pd.read_csv("data/computer_generated.csv")[features][:].sample(1) #UPDATE
 
-    example_audio = random_auth
+    example_audio = random_recorded
 
-    # input_audio_path = "data/authentic/*.wav"
-    # random_pick = random.choice(glob.glob(input_audio_path))
-    # example_audio = extract_input_audio_features(random_pick)
+    # # input_audio_path = "data/authentic/*.wav"
+    # # random_pick = random.choice(glob.glob(input_audio_path))
+    # # example_audio = extract_input_audio_features(random_pick)
 
     plot_result(example_audio, cga_data, aa_data, ra_data)
     clf = train_model(cga_data, aa_data, ra_data, features, target)
