@@ -41,3 +41,8 @@ pip3 install -r requirements.txt
 - [Sedrick Cashaw Jr](https://github.com/sedcash)
 
 - [Hussein (Shawn) El-Souri](https://github.com/helsouri)
+
+
+### References :
+- https://makersportal.com/blog/2018/8/23/recording-audio-on-the-raspberry-pi-with-python-and-a-usb-microphon
+
