@@ -5,8 +5,7 @@ import glob
 import sklearn as sk
 import random
 import scipy.io.wavfile as wav
-from python_speech_features import mfcc
-from python_speech_features import logfbank
+from python_speech_features import mfcc, logfbank
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
@@ -309,35 +308,39 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     """
     df = pd.concat([cg_df, auth_df, rec_df], sort=False)
     X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=1)
-    classifier = LogisticRegression()
-    classifier.fit(X_train, y_train)
+    classifier = LogisticRegression(solver='lbfgs')
+    classifier.fit(X_train, y_train.values.ravel())
     # y_pred = classifier.predict(X_test)
 
     clf = KNeighborsClassifier()
-    clf.fit(X_train, y_train)
+    clf.fit(X_train, y_train.values.ravel())
     y_pred = clf.predict(X_test)
 
     # Calculate Confusion Matrix for FRAUD audio
     cm_fraud = confusion_matrix(y_test, y_pred)
-    print "Fraudulent Audio Confusion Matrix:", cm_fraud
+    print "Fraudulent Audio Confusion Matrix:"
+    print cm_fraud
+    print
 
     # Compute Area Under the Receiver Operating Characteristic Curve (FRAUD)
     auc_fraud = roc_auc_score(y_test, y_pred)
-    print "ROC AUC (FRAUD): ", auc_fraud
+    print "ROC AUC: "
+    print auc_fraud
+    print
 
     # Compute F-Score (FRAUD)
     fscore_fraud = f1_score(y_test, y_pred)
-    print "F-Score Fraud: ", fscore_fraud
+    print "F-Score: "
+    print fscore_fraud
+    print
 
     # Compute Precision Recall Curve
     precision, recall, thresholds = precision_recall_curve(y_test, y_pred)
-    print "Precision:", precision
-    print "Recall:", recall
-    print "Threshold:", thresholds
     pr_auc = sk.metrics.auc(recall, precision)
     fpr, tpr, threshold = sk.metrics.roc_curve(y_test, y_pred)
     roc_auc = sk.metrics.auc(fpr, tpr)
-    print "PR_AUC:", pr_auc
+    print "Precision Recall AUC:"
+    print pr_auc
 
     # # Training Plots
     # plt.title("Precision-Recall vs Threshold Chart")
@@ -391,13 +394,22 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     return clf
 
 
-def detect_fraud(clf, input_audio=None):
+def detect_fraud(clf, input_audio):
     result = clf.predict(input_audio)
+    probability = clf.predict_proba(input_audio)
     if result == 1:
-        print("Input Audio Marked as [FRAUD]")
+        output = ["Input Audio Marked as [FRAUD]", "Certainty: ",
+                  "[Not Fraud, Fraud]", probability]
+        send_results_to_hardware(output)
+        for results in output:
+            print results
     else:
-        print("Input Audio Marked as [AUTHENTIC]")
-    np.savetxt("output.txt", result)
+        output = ["Input Audio Marked as [AUTHENTIC]", "Certainty: ",
+                  "[Not Fraud, Fraud]", probability]
+
+        send_results_to_hardware(output)
+        for results in output:
+            print results
 
 
 def extract_input_audio_features(audio):
@@ -419,9 +431,8 @@ def import_audio_data(*kwargs):
     pass
 
 
-def send_results_to_hardware(*kwargs):
-    # Need to import Shawn's Module
-    pass
+def send_results_to_hardware(input):
+    np.savetxt("output.txt", input, fmt='%s', delimiter=',')
 
 
 def plot_result(data, cg_df, auth_df, rec_df):
@@ -437,6 +448,7 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 
 if __name__ == "__main__":
+    print
     cga_data = pd.read_csv("data/fraud.csv")[:120]
     ra_data = pd.read_csv("data/recorded.csv")[:120]
     aa_data = pd.read_csv("data/authentic.csv")[:120]
@@ -448,7 +460,7 @@ if __name__ == "__main__":
     random_auth = pd.read_csv("data/authentic.csv")[features][120:].sample(1)
     random_cg = pd.read_csv("data/fraud.csv")[features][120:].sample(1)
 
-    example_audio = random_recorded
+    example_audio = random_auth
 
     # input_audio_path = "data/authentic/*.wav"
     # random_pick = random.choice(glob.glob(input_audio_path))
