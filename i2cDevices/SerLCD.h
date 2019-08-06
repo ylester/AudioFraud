@@ -1,10 +1,10 @@
 #ifndef QWIIC_SER_LCD_H
 #define QWIIC_SER_LCD_H
 
-#include <Arduino.h>
-#include <Wire.h>
-#include <Stream.h>
-#include <SPI.h>
+//#include <Arduino.h>
+//#include <Wire.h>
+//#include <Stream.h>
+//#include <SPI.h>
 
 #define DISPLAY_ADDRESS1 0x72 //This is the default address of the OpenLCD
 #define MAX_ROWS 4
