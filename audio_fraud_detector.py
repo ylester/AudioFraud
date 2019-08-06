@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import sklearn as sk
-import random
+import random, os
 import scipy.io.wavfile as wav
 from python_speech_features import mfcc, logfbank
 from sklearn.model_selection import train_test_split
@@ -19,7 +19,7 @@ def create_cga_dataframe():
     the data
     """
 
-    cg_path = "data/computer_generated_audio/*/*.wav"
+    cg_path = "data/computer_generated/*/*.wav"
     cg_mfcc = [] # Cepstrum is the information of rate of change in spectral bands
     cg_filter_bank = []
     cg_rates = []
@@ -451,19 +451,16 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 if __name__ == "__main__":
     # Add everyone else's computer gen
-    cga_data = pd.read_csv("data/computer_generated.csv")
-    cga_data = pd.concat([cga_data, cga_data], sort=False)[:200]
+    cga_data = pd.read_csv("data/computer_generated.csv")[:200]
     ra_data = pd.read_csv("data/recorded.csv")[:200]
     aa_data = pd.read_csv("data/authentic.csv")[:200]
     features = ['rates', 'mfcc_mean', 'fbank_mean']
     target = ['fraud']
 
-    print len(ra_data) , len(aa_data), len(cga_data)
-
     # Test To Show Working Model
     random_recorded = pd.read_csv("data/recorded.csv")[features][200:].sample(1)
     random_auth = pd.read_csv("data/authentic.csv")[features][200:].sample(1)
-    random_cg = pd.read_csv("data/computer_generated.csv")[features][:].sample(1) #UPDATE
+    random_cg = pd.read_csv("data/computer_generated.csv")[features][200:].sample(1) #UPDATE
 
     example_audio = random_recorded
 
@@ -474,3 +471,10 @@ if __name__ == "__main__":
     plot_result(example_audio, cga_data, aa_data, ra_data)
     clf = train_model(cga_data, aa_data, ra_data, features, target)
     detect_fraud(clf, example_audio)
+
+    # path = "data/computer_generated/cg_yesha/"
+    # for index, filename in enumerate(os.listdir(path)):
+    #     dst = "yeshacg" + str(index+1) + ".wav"
+    #     src = path + "/" + filename
+    #     dst = path + "/" + dst
+    #     os.rename(src, dst)
