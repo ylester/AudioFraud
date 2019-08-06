@@ -1,13 +1,15 @@
 # server.py
 import socket                   # Import socket module
-import wiringpi
+#import wiringpi
+import serial
 
-wiringpi.wiringPiSetup()
-serial = wiringpi.serialOpen('/dev/ttyAMA0',115200)
+#wiringpi.wiringPiSetup()
+ser = serial.Serial('/dev/ttyUSB0',115200)
 
-port = 50001                    # Reserve a port for your service every new transfer wants a new port or you must wait.
+port = 50000                    # Reserve a port for your service every new transfer wants a new port or you must wait.
 s = socket.socket()             # Create a socket object
-host = "192.168.0.18"   # Get local machine name
+# host = "192.168.0.18"         # server ip from if config at home
+host = '192.168.137.52'         # serve ip at school from laptop hotspot using ifconfig
 s.bind((host, port))            # Bind to the port
 s.listen(5)                     # Now wait for client connection.
 
@@ -19,8 +21,9 @@ while True:
     data = conn.recv(1024)
     print('Server received', repr(data))
 
-    filename='test.wav' #In the same folder or path is this file running must the file you want to tranfser to be
+    filename='test1.wav' #In the same folder or path is this file running must the file you want to tranfser to be
     f = open(filename,'rb')
+    ser.write(filename.encode())
     l = f.read(1024)
     while (l):
         conn.send(l)
