@@ -7,6 +7,8 @@ SerLCD lcd; // initialize the LCD with default i2c address on 0x72
 
 byte blinkAddress = 0x09, LCDAddress = 0x72, red ,green, blue ; //initialize I2C address for LCD and LED and color variables
 
+String serialData;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);  // initialize serial for debugging
@@ -22,22 +24,37 @@ void setup() {
   lcd.setBacklight(255,255,255); // set up full brightness on LCD
   lcd.setContrast(0); // set contrast ( lower to 0 for higher contrast)
   lcd.clear(); // clear teh LCD and move cursor to home position
-  lcd.print("Program Started");
+  Serial.println("Program Started");
   randomSeed(analogRead(0));
   delay(500); //pause for half a second
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-    lcd.clear(); //Clear the display - this moves the cursor to home position as well
-    lcd.print("Rec. Started");
-    lcd.setCursor(0, 1);
-    lcd.print(millis() / 1000);
-
-    red = byte(random(255));
-    green = byte(random(255));
-    blue = byte(random(255));
-    BlinkM_setRGB(blinkAddress, red , green, blue);
-    delay(400);     
+//    lcd.clear(); //Clear the display - this moves the cursor to home position as well
+//    lcd.print("Rec. Started");
+//    lcd.setCursor(0, 1);
+//    lcd.print(millis() / 1000);
+    while (Serial.available())
+    {
+      lcd.clear(); //Clear the display - this moves the cursor to home position as well
+      serialData = Serial.readString();
+      Serial.println (serialData);
+      lcd.print(serialData);
+      BlinkM_setRGB(blinkAddress,0,255,0);
+      delay(100);
+    }
+//    else
+//    {
+//      lcd.clear(); //Clear the display - this moves the cursor to home position as well
+//      lcd.print("No data");
+//      BlinkM_setRGB(blinkAddress,255,0,0);
+//      delay(100);
+//    }
+//    red = byte(random(255));
+//    green = byte(random(255));
+//    blue = byte(random(255));
+//    BlinkM_setRGB(blinkAddress, red , green, blue);
+//    delay(400);     
 
 }
