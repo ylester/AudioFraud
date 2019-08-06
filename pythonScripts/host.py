@@ -1,10 +1,25 @@
-import socket
-HOST = '192.168.0.16'  # The server's hostname or IP address
-PORT = 65432        # The port used by the server
+import socket                   # Import socket module
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
-    s.sendall(b'Hello, world')
-    data = s.recv(1024)
+s = socket.socket()             # Create a socket object
+host = '192.168.0.18'  #Ip address that the TCPServer  is there
+port = 50001                     # Reserve a port for your service every new transfer wants a new port or you must wait.
 
-print('Received', repr(data))
+s.connect((host, port))
+s.send(b"Hello server!")
+
+with open('test.wav', 'wb') as f:
+    print ('file opened')
+    while True:
+        print('receiving data...')
+        data = s.recv(1024)
+        print('received', (data))
+        print('\n')
+        if not data:
+            break
+        # write data to a file
+        f.write(data)
+
+f.close()
+print('Successfully get the file')
+s.close()
+print('connection closed')

@@ -34,7 +34,7 @@ pip3 install -r requirements.txt
 - Hardware
 	- The hardware is now very close to being an "all in one" via the usage of rasberry pi that can directly program and run arduinio
 	- Goal is to have rasberry pi itself use i2c to talk to LCD and LEd and skip the redboard
-
+	- python script of host and server now able to send files
 
 ### Team Members:
 
@@ -45,7 +45,8 @@ pip3 install -r requirements.txt
 - [Hussein (Shawn) El-Souri](https://github.com/helsouri)
 
 ### References :
-- https://makersportal.com/blog/2018/8/23/recording-audio-on-the-raspberry-pi-with-python-and-a-usb-microphon
+- https://makersportal.com/blog/2018/8/23/recording-audio-on-the-raspberry-pi-with-python-and-a-usb-microphone
 
 - for recording audio the python script is unreliable overflowing for reaosn i do not know so there is a terminal command to do it without having to do any python arecord -D hw:1,0 -d 10 -f cd test.wav -c 1
-addedd functions to run lcd and LED on python and socket script now works
+added functions to run lcd and LED on python and socket script now works
+
