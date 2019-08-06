@@ -47,3 +47,5 @@ pip3 install -r requirements.txt
 ### References :
 - https://makersportal.com/blog/2018/8/23/recording-audio-on-the-raspberry-pi-with-python-and-a-usb-microphon
 
+- for recording audio the python script is unreliable overflowing for reaosn i do not know so there is a terminal command to do it without having to do any python arecord -D hw:1,0 -d 10 -f cd test.wav -c 1
+addedd functions to run lcd and LED on python and socket script now works
