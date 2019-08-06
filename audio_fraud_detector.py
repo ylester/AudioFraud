@@ -405,6 +405,7 @@ def detect_fraud(clf, input_audio):
         send_results_to_hardware(output)
         for results in output:
             print results
+        return "FRAUD"
     else:
         output = ["Input Audio Marked as [AUTHENTIC]", "Certainty: ",
                   "[Not Fraud, Fraud]", probability]
@@ -412,6 +413,7 @@ def detect_fraud(clf, input_audio):
         send_results_to_hardware(output)
         for results in output:
             print results
+        return "AUTHENTIC"
 
 
 def extract_input_audio_features(audio):
@@ -437,12 +439,22 @@ def send_results_to_hardware(input):
     np.savetxt("output.txt", input, fmt='%s', delimiter=',')
 
 
-def plot_result(data, cg_df, auth_df, rec_df):
+def rename_files():
+    path = "data/computer_generated/cg_shawn/"
+    for index, filename in enumerate(os.listdir(path)):
+        dst = "shawn_cg" + str(index+1) + ".wav"
+        src = path + "/" + filename
+        dst = path + "/" + dst
+        os.rename(src, dst)
+
+
+def plot_result(data, cg_df, auth_df, rec_df, result):
     plt.title('Classification For Input Data')
     plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
     plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
     plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
-    plt.scatter(data['mfcc_mean'], data['fbank_mean'], color='black', label='Predicted')
+    plt.scatter(data['mfcc_mean'], data['fbank_mean'], color='black', label='Input Data Point')
+    plt.text(data['mfcc_mean'] + 0.5 , data['fbank_mean'], result, bbox=dict(facecolor='white', alpha=0.5))
     plt.ylabel('Filter Bank')
     plt.xlabel('MFCC')
     plt.legend()
@@ -450,7 +462,7 @@ def plot_result(data, cg_df, auth_df, rec_df):
 
 
 if __name__ == "__main__":
-    # Add everyone else's computer gen
+    print
     cga_data = pd.read_csv("data/computer_generated.csv")[:200]
     ra_data = pd.read_csv("data/recorded.csv")[:200]
     aa_data = pd.read_csv("data/authentic.csv")[:200]
@@ -460,21 +472,15 @@ if __name__ == "__main__":
     # Test To Show Working Model
     random_recorded = pd.read_csv("data/recorded.csv")[features][200:].sample(1)
     random_auth = pd.read_csv("data/authentic.csv")[features][200:].sample(1)
-    random_cg = pd.read_csv("data/computer_generated.csv")[features][200:].sample(1) #UPDATE
+    random_cg = pd.read_csv("data/computer_generated.csv")[features][200:].sample(1)
 
     example_audio = random_recorded
 
-    # # input_audio_path = "data/authentic/*.wav"
-    # # random_pick = random.choice(glob.glob(input_audio_path))
-    # # example_audio = extract_input_audio_features(random_pick)
+    # input_audio_path = "data/authentic/*.wav"
+    # random_pick = random.choice(glob.glob(input_audio_path))
+    # example_audio = extract_input_audio_features(random_pick)
 
-    plot_result(example_audio, cga_data, aa_data, ra_data)
     clf = train_model(cga_data, aa_data, ra_data, features, target)
-    detect_fraud(clf, example_audio)
+    output = detect_fraud(clf, example_audio)
+    plot_result(example_audio, cga_data, aa_data, ra_data, output)
 
-    # path = "data/computer_generated/cg_yesha/"
-    # for index, filename in enumerate(os.listdir(path)):
-    #     dst = "yeshacg" + str(index+1) + ".wav"
-    #     src = path + "/" + filename
-    #     dst = path + "/" + dst
-    #     os.rename(src, dst)
