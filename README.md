@@ -20,8 +20,9 @@ Design a secure voice recognition system that is able to detect computer generat
 
 - Hardware
 	- The hardware is now very close to being an "all in one" via the usage of rasberry pi that can directly program and run arduinio
-	- Goal is to have rasberry pi itself use i2c to talk to LCD and LEd and skip the redboard
+	- Discovered that it will be hastle to fun i2c devices directly from arduino instead configured pi to send UART commands/data to redboard and will program i2c devices from there
 	- python script of host and server now able to send files
+	- python audio recording script perfect with using comman line commands
 
 ### Team Members:
 
@@ -30,8 +31,4 @@ Design a secure voice recognition system that is able to detect computer generat
 - [Sedrick Cashaw Jr](https://github.com/sedcash)
 
 - [Hussein (Shawn) El-Souri](https://github.com/helsouri)
-
-### References :
-- https://makersportal.com/blog/2018/8/23/recording-audio-on-the-raspberry-pi-with-python-and-a-usb-microphon
-- for recording audio the python script is unreliable overflowing for reaosn i do not know so there is a terminal command to do it without having to do any python arecord -D hw:1,0 -d 5 -f cd -r 48000 test.wav -c 1
 
