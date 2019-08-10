@@ -1,30 +1,26 @@
-##Import classifer models
-from sklearn.linear_model import LogisticRegression
+# Import classifier model
+from sklearn.ensemble import RandomForestClassifier
 
-#Feature Manuiplaton
-from sklearn.model_selection import train_test_split
+# Feature manipulation
+from sklearn.preprocessing import LabelEncoder
+import pickle
+import pandas as pd
 
-#Import metrics
-from sklearn.metrics import confusion_matrix
-
-#import data
+# Import data
 from audio_data import get_data
 
-#visual data
-import matplotlib as plt
-import seaborn as sb
-import matplotlib.patches as mpatches
 
 def clean_data(df):
-    df["voiceprint_mean"] = df["voiceprint_mean"].apply(convert_to_series)
-    # df["speaker_num"] = df["speaker_num"].eval()
+    encoder = LabelEncoder()
+    df["person"] = encoder.fit_transform(df.person)
     return df
 
-def convert_to_series(string):
-    arr = string[1:-1]
-    arr = arr.split(" ")
-    arr = [float(x) for x in arr]
-    return arr
+
+def make_pickle(name, obj):
+    pickle_out = open(name, "wb")
+    pickle.dump(obj, pickle_out)
+    pickle_out.close()
+
 
 def extract_features(df, wanted):
     column_names = list(df)
@@ -33,36 +29,43 @@ def extract_features(df, wanted):
     return [X_features, y_feature]
 
 
-def identify_speaker(df,features):
+def train_model(df, features):
     X_features = features[0:-1]
     y_feature = features[-1]
-    log_regr = LogisticRegression(random_state=0)
+    model = RandomForestClassifier()
     X = df[X_features].values
-    y = df[y_feature].values
+    y = df[y_feature].values.ravel()
+    model.fit(X, y)
+    return model
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=0)
-    log_regr.fit(X_train, y_train)
-    y_pred = log_regr.predict(X_test)
 
-    # Making the Confusion Matrix
-    cm = confusion_matrix(y_test, y_pred)
+def get_speaker(speaker):
+    speakers = {0: "Sedrick",
+                1: "Shawn",
+                2: "Unknown",
+                3:"Yesha"}
 
-    plt.scatter(X, 101, c=y, edgecolor='black')
-    patch0 = mpatches.Patch(color='#FF0000', label='yesha')
-    patch1 = mpatches.Patch(color='#00FF00', label='sedrick')
-    plt.legend(handles=[patch0, patch1])
-    plt.show()
+    return speakers[speaker]
 
-    print(cm)
+
+def identify_speaker(input):
+    model = pd.read_pickle("data/classifiers/voice_model")
+    features = [str(i) for i in range(1,102)] + ["fbankmean", "mfcc_mean"]
+    input = input[features]
+    result = model.predict(input)
+    speaker = get_speaker(result)
+    return speaker
+
 
 def main():
     df = get_data()
     df = clean_data(df)
-    print(type(df["voiceprint_mean"].iloc(0)))
-    features = ["voiceprint_mean", "speaker_num"]
-    identify_speaker(df, features)
+    features = [str(i) for i in range(1,102)] + ["fbankmean", "mfcc_mean", "person"]
+    model = train_model(df, features)
+    name = "data/classifiers/voice_model"
+    make_pickle(name, model)
+
 
 main()
 
 
-[[2,3], [4,6]] = [[2 6] [4 6]]

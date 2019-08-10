@@ -1,13 +1,10 @@
-import os
-import scipy.io.wavfile as wav
+import glob, os, pickle
+import scipy.io.wavfile as wavf
 import pandas as pd
 import numpy as np
 from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
 from scipy.signal import stft
-import glob
-import seaborn as sb
-
 
 
 def create_data(data_dir):
@@ -73,101 +70,82 @@ def is_fraud(filename):
 
 
 def get_filename(file, person):
-    lastchar_index = file.index(person[-1]) + 2
+    if person == "yesha":
+        lastchar_index = file.index(person) + len(person) - 1 + 2
+    else:
+        lastchar_index = file.index(person[-1]) + 2
     return file[lastchar_index:]
+
+def make_pickle(name, object):
+    pickle_out = open(name, "wb")
+    pickle.dump(object, pickle_out)
+    pickle_out.close()
+    return pickle_out
 
 
 def create_dataframe(data_dir):
-    files = []
-    file_names = []
-    authentic = []
-    fraud = []
-    recorded = []
-    cg = []
-    people = []
-    rates = []
-    speaker_nums = []
-    freq = []
-    z = []
-    zmean = []
-    mfccs = []
-    mfcc_mean = []
-    filter_bank = []
-    filter_bank_mean = []
+    rows = []
 
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
-        if person in ["authentic", "original", "fraud", "shawn",  'audio_data.xlsx', 'audio_data.csv']:
+        if person in ["authentic", "original", "fraud", "audio_data.csv"]:
             continue
         person_dir = get_person_dir(person, data_dir)
         path = person_dir + "/*.wav"
         for audio_file in glob.glob(path):
+            row = {}
+
             print(audio_file)
-            rate, stereo = wav.read(audio_file)
-            if len(stereo) == 0:
-                continue
-            mono = stereo[:, 0]
-            files.append(audio_file)
-            people.append(person)
-            rates.append(rate)
-            speaker_nums.append(index + 1)
+            filename = get_filename(audio_file, person)
+            row["filename"] = filename
+            row["file"] = audio_file
+            row["person"] = person
+            row["speaker_num"] = index
+
+            audio_file = open(audio_file, "rb")
+
+            rate, stereo = wavf.read(audio_file)
+            if not isinstance(stereo[0], np.ndarray):
+                mono = stereo
+            else:
+                mono = stereo[:, 0]
+
+
+            row["rate"] = rate
 
             f, t, Zxx = stft(mono, rate, nperseg=200)
-            z.append(Zxx.T)
-            new_zxx = np.mean(Zxx.T)
-            zmean.append(new_zxx)
+            temp = pd.DataFrame(Zxx.T).abs().mean().values
+            count = 1
+            for val in temp:
+                row[count] = val
+                count += 1
 
-            fbank_feat = logfbank(stereo, rate, nfft=1103)
-            filter_bank.append(fbank_feat)
-            fbankmean = np.mean(fbank_feat)
-            filter_bank_mean.append(fbankmean)
+            fbank_mean = np.mean(logfbank(stereo, rate, nfft=1200))
+            row["fbankmean"] = fbank_mean
 
-            mfcc_feature = mfcc(stereo, rate, nfft=1103)
-            mfccs.append(mfcc_feature)
-            mfccmean = np.mean(mfcc_feature)
-            mfcc_mean.append(mfccmean)
+            mfcc_mean = np.mean(mfcc(stereo, rate, nfft=1200))
+            row["mfcc_mean"] = mfcc_mean
 
-            freq.append(f)
-            filename = get_filename(audio_file, person)
-            file_names.append(filename)
             fraud_value, fraud_type = is_fraud(filename)
             if fraud_value:
                 if fraud_type == 1:
-                    recorded.append(1)
-                    cg.append(0)
+                    row["recorded"] = 1
+                    row["computer_generated"] = 0
                 else:
-                    recorded.append(0)
-                    cg.append(1)
-                fraud.append(1)
-                authentic.append(0)
+                    row["recorded"] = 0
+                    row["computer_generated"] = 1
+                row["fraud"] = 1
+                row["authentic"] = 0
             else:
-                authentic.append(1)
-                fraud.append(0)
-                cg.append(0)
-                recorded.append(0)
+                row["authentic"] = 1
+                row["fraud"] = 0
+                row["computer_generated"] = 0
+                row["recorded"] = 0
 
-    df = pd.DataFrame()
-    df['file'] = files
-    df["person"] = people
-    df['rate'] = rates
-    df["speaker_num"] = speaker_nums
-    df["frequency"] = freq
-    df["voiceprint_mean"] = zmean
-    df["voiceprint"] = z
-    df["filename"] = file_names
-    df["fraud"] = fraud
-    df["authentic"] = authentic
-    df["recorded"] = recorded
-    df["computer_generated"] = cg
-    df["fbankmean"] = filter_bank_mean
-    df["mfcc_mean"] = mfcc_mean
+            rows.append(row)
 
-    # df['filter_bank'] = filter_bank
-    # df['mfcc'] = mfccs
-
-    df = df.reindex(sorted(df.columns), axis=1)
-
+    df = pd.DataFrame(rows)
     return df
 
 
@@ -176,15 +154,10 @@ def get_data():
     df = pd.read_csv(csv)
     return df
 
-def clean_data(df):
-    cols = ["voiceprint", "filter_bank", "mfcc"]
-    for col in cols:
-        df[col] = df[col].apply(convertStringToArray, col)
-    return df
-
 
 def create_csv(df, filename):
     df.to_csv(filename)
+
 
 
 
