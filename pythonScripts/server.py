@@ -1,7 +1,6 @@
 # server.py
 import socket                   # Import socket module
-#import wiringpi
-import serial
+import serial                   # Import library for serial communication
 
 #wiringpi.wiringPiSetup()
 ser = serial.Serial('/dev/ttyUSB0',115200)
