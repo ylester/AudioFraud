@@ -1,13 +1,16 @@
 import socket                   # Import socket module
 
-s = socket.socket()             # Create a socket object
-host = '192.168.0.18'  #Ip address that the TCPServer  is there
-port = 50001                     # Reserve a port for your service every new transfer wants a new port or you must wait.
+s = socket.socket()              # Create a socket object
+host = '192.168.0.18'            # ip address of server at home
+#host = '192.168.137.52'         # ip address of server at schoool
+port = 50000                     # Reserve a port for your service every new transfer wants a new port or you must wait.
 
 s.connect((host, port))
 s.send(b"Hello server!")
 
-with open('test.wav', 'wb') as f:
+fileName=s.recv(1024).decode()
+print(fileName)
+with open(fileName, 'wb') as f:
     print ('file opened')
     while True:
         print('receiving data...')
