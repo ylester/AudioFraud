@@ -5,6 +5,8 @@ import numpy as np
 from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
 from scipy.signal import stft
+from sklearn.preprocessing import LabelEncoder
+
 
 
 def create_data(data_dir):
@@ -76,11 +78,10 @@ def get_filename(file, person):
         lastchar_index = file.index(person[-1]) + 2
     return file[lastchar_index:]
 
-def make_pickle(name, object):
+def make_pickle(name, obj):
     pickle_out = open(name, "wb")
-    pickle.dump(object, pickle_out)
+    pickle.dump(obj, pickle_out)
     pickle_out.close()
-    return pickle_out
 
 
 def create_dataframe(data_dir):
@@ -96,7 +97,6 @@ def create_dataframe(data_dir):
         for audio_file in glob.glob(path):
             row = {}
 
-            print(audio_file)
             filename = get_filename(audio_file, person)
             row["filename"] = filename
             row["file"] = audio_file
@@ -146,6 +146,10 @@ def create_dataframe(data_dir):
             rows.append(row)
 
     df = pd.DataFrame(rows)
+
+    encoder = LabelEncoder()
+    df["speaker_num"] = encoder.fit_transform(df['speaker_num'])
+
     return df
 
 
@@ -157,7 +161,6 @@ def get_data():
 
 def create_csv(df, filename):
     df.to_csv(filename)
-
 
 
 
