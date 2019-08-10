@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import sklearn as sk
-import random, os
+import random, os, pickle
 import scipy.io.wavfile as wav
 from python_speech_features import mfcc, logfbank
 from sklearn.model_selection import train_test_split
@@ -396,7 +396,9 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     return clf
 
 
-def detect_fraud(clf, input_audio):
+def detect_fraud(input_audio):
+    input_audio = extract_input_audio_features(input_audio)
+    clf = pd.read_pickle("data/classifiers/fraud_model")
     result = clf.predict(input_audio)
     probability = clf.predict_proba(input_audio)
     if result == 1:
@@ -430,22 +432,8 @@ def extract_input_audio_features(audio):
     return df
 
 
-def import_audio_data(*kwargs):
-    # Need to import Shawn's Module
-    pass
-
-
 def send_results_to_hardware(input):
     np.savetxt("output.txt", input, fmt='%s', delimiter=',')
-
-
-def rename_files():
-    path = "data/computer_generated/cg_shawn/"
-    for index, filename in enumerate(os.listdir(path)):
-        dst = "shawn_cg" + str(index+1) + ".wav"
-        src = path + "/" + filename
-        dst = path + "/" + dst
-        os.rename(src, dst)
 
 
 def plot_result(data, cg_df, auth_df, rec_df, result):
@@ -454,7 +442,7 @@ def plot_result(data, cg_df, auth_df, rec_df, result):
     plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
     plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
     plt.scatter(data['mfcc_mean'], data['fbank_mean'], color='black', label='Input Data Point')
-    plt.text(data['mfcc_mean'] + 0.5 , data['fbank_mean'], result, bbox=dict(facecolor='white', alpha=0.5))
+    plt.text(data['mfcc_mean'] + 0.5, data['fbank_mean'], result, bbox=dict(facecolor='white', alpha=0.5))
     plt.ylabel('Filter Bank')
     plt.xlabel('MFCC')
     plt.legend()
@@ -463,24 +451,22 @@ def plot_result(data, cg_df, auth_df, rec_df, result):
 
 if __name__ == "__main__":
     print
-    cga_data = pd.read_csv("data/computer_generated.csv")[:200]
-    ra_data = pd.read_csv("data/recorded.csv")[:200]
-    aa_data = pd.read_csv("data/authentic.csv")[:200]
-    features = ['rates', 'mfcc_mean', 'fbank_mean']
-    target = ['fraud']
+    cga_data = pd.read_csv("data/computer_generated.csv")[:250]
+    ra_data = pd.read_csv("data/recorded.csv")[:250]
+    aa_data = pd.read_csv("data/authentic.csv")[:250]
 
-    # Test To Show Working Model
-    random_recorded = pd.read_csv("data/recorded.csv")[features][200:].sample(1)
-    random_auth = pd.read_csv("data/authentic.csv")[features][200:].sample(1)
-    random_cg = pd.read_csv("data/computer_generated.csv")[features][200:].sample(1)
+    # # Test To Show Working Model
+    # random_recorded = pd.read_csv("data/recorded.csv")[features][250:].sample(1)
+    # random_auth = pd.read_csv("data/authentic.csv")[features][250:].sample(1)
+    # random_cg = pd.read_csv("data/computer_generated.csv")[features][250:].sample(1)
+    #
+    # test_data = random_cg
+    #
+    input_audio_path = "data/fraud/recorded/*.wav"
+    example_audio = random.choice(glob.glob(input_audio_path))
+    test_data = extract_input_audio_features(example_audio)
 
-    example_audio = random_recorded
+    output = detect_fraud(example_audio)
+    plot_result(test_data, cga_data, aa_data, ra_data, output)
 
-    # input_audio_path = "data/authentic/*.wav"
-    # random_pick = random.choice(glob.glob(input_audio_path))
-    # example_audio = extract_input_audio_features(random_pick)
-
-    clf = train_model(cga_data, aa_data, ra_data, features, target)
-    output = detect_fraud(clf, example_audio)
-    plot_result(example_audio, cga_data, aa_data, ra_data, output)
 
