@@ -451,9 +451,11 @@ def plot_result(data, cg_df, auth_df, rec_df, result):
 
 if __name__ == "__main__":
     print
-    cga_data = pd.read_csv("data/computer_generated.csv")[:250]
-    ra_data = pd.read_csv("data/recorded.csv")[:250]
-    aa_data = pd.read_csv("data/authentic.csv")[:250]
+    # DEMO FRAUD
+
+    # cga_data = pd.read_csv("data/computer_generated.csv")[:250]
+    # ra_data = pd.read_csv("data/recorded.csv")[:250]
+    # aa_data = pd.read_csv("data/authentic.csv")[:250]
 
     # # Test To Show Working Model
     # random_recorded = pd.read_csv("data/recorded.csv")[features][250:].sample(1)
