@@ -7,7 +7,7 @@ SerLCD lcd; // initialize the LCD with default i2c address on 0x72
 
 byte blinkAddress = 0x09, LCDAddress = 0x72, red ,green, blue ; //initialize I2C address for LCD and LED and color variables
 
-String serialData;
+String serialData=""; //empty string
 
 void setup() {
   // put your setup code here, to run once:
@@ -35,14 +35,21 @@ void loop() {
 //    lcd.print("Rec. Started");
 //    lcd.setCursor(0, 1);
 //    lcd.print(millis() / 1000);
-    while (Serial.available())
+    if (Serial.available()>0)
     {
-      lcd.clear(); //Clear the display - this moves the cursor to home position as well
-      serialData = Serial.readString();
-      Serial.println (serialData);
-      lcd.print(serialData);
-      BlinkM_setRGB(blinkAddress,0,255,0);
-      delay(100);
+       serialData = Serial.readString();
+       lcd.clear();
+       Serial.println (serialData);
+       lcd.print(serialData);
+       BlinkM_setRGB(blinkAddress,0,255,0);
+       delay(7000);
+    }
+    else
+    {
+       lcd.clear();
+       lcd.print("No Data");
+       BlinkM_setRGB(blinkAddress,255,0,0);
+       delay(200);
     }
 //    else
 //    {
