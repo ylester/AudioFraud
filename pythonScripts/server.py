@@ -7,10 +7,10 @@ def run_server():
     import os
     ser = serial.Serial('/dev/ttyUSB0',115200) # open UArt port on usb between pi and arduino
 
-    port = 50000                    # Reserve a port for your service every new transfer wants a new port or you must wait.
+    port = 50001                    # Reserve a port for your service every new transfer wants a new port or you must wait.
     s = socket.socket()             # Create a socket object
-    host = "192.168.0.18"           # server ip from if config at home
-    # host = '192.168.137.52'       # serve ip at school from laptop hotspot using ifconfig
+    #host = "192.168.0.18"           # server ip from if config at home
+    host = '192.168.137.52'       # serve ip at school from laptop hotspot using ifconfig
     s.bind((host, port))            # Bind to the port
     s.listen(5)                     # Now wait for client connection.
 
@@ -27,12 +27,12 @@ def run_server():
         f = open(fileName,'rb')
         conn.send(fileName.encode())
         ser.write(fileName.encode())
-        l = f.read(1024)
-        while (l):
-            conn.send(l)
-            print('Sent ',repr(l))
+        dataPacket = f.read(1024)
+        while (dataPacket):
+            conn.send(dataPacket)
+            print('Sent ',repr(dataPacket))
             print('\n')
-            l = f.read(1024)
+            dataPacket = f.read(1024)
         f.close()
 
         print('Done sending')
