@@ -19,5 +19,5 @@ while True:
         print ("Done rec.")
         fileCount+=1
     else:
-        print("Thank you for trying our prject")
+        print("Thank you for trying our project")
         break
