@@ -22,7 +22,7 @@ def run_server():
         data = conn.recv(1024)
         print('Server received', repr(data))
 
-        filePath= easygui.fileopenbox(msg="Choose a wav file", title=None, default="*.wav", filetypes='*.wav')  #In the same folder or path is this file running must the file you want to tranfser to be
+        filePath= easygui.fileopenbox(msg="Choose a wav file", title=None, default="*.wav", filetypes='*.wav')  #gui to chose file
         fileName= os.path.basename(filePath)
         f = open(fileName,'rb')
         conn.send(fileName.encode())
