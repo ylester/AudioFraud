@@ -6,9 +6,13 @@
 SerLCD lcd; // initialize the LCD with default i2c address on 0x72
 
 byte blinkAddress = 0x09, LCDAddress = 0x72, red ,green, blue ; //initialize I2C address for LCD and LED and color variables
+int index = -1;
 
 String serialData=""; //empty string
 
+String speaker, result;
+
+ 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);  // initialize serial for debugging
@@ -18,7 +22,7 @@ void setup() {
   Serial.println("I2C Initilized");
 
   BlinkM_off(blinkAddress); // turn off the LED at first
-  BlinkM_setFadeSpeed(blinkAddress, 0x05); // set fade speed for LED
+  BlinkM_setFadeSpeed(blinkAddress, 0xAF); // set fade speed for LED
 
   lcd.begin(Wire); // set up LCD for I2C communication
   lcd.setBacklight(255,255,255); // set up full brightness on LCD
@@ -31,37 +35,27 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-//    lcd.clear(); //Clear the display - this moves the cursor to home position as well
-//    lcd.print("Rec. Started");
-//    lcd.setCursor(0, 1);
-//    lcd.print(millis() / 1000);
-    if (Serial.available()>0)
-    {
-       serialData = Serial.readString();
-       lcd.clear();
-       Serial.println (serialData);
-       lcd.print(serialData);
-       BlinkM_setRGB(blinkAddress,0,255,0);
-       delay(7000);
+  if (Serial.available()>0)  // if receivin gserial data  
+  {
+      serialData = Serial.readString(); //store it in a string
+      lcd.clear(); // clear lcd screen
+      // Serial.println (serialData); // print the serial datta on terminal for debgging 
+      speaker = serialData.substring(0, serialData.indexOf(",")); // parse speaker
+      result = serialData.substring((serialData.indexOf(",")+2),serialData.length()); // parse result
+      lcd.print(speaker); // print speaker
+      lcd.setCursor(0,1); //lcd.setCursor(column,row); set to second row
+      lcd.print(result);  // print result on second line
+      //Serial.println(result);
+      BlinkM_fadeToRGB(blinkAddress,red,green,blue); // bink led in a RGB color 
+      delay(1000);
     }
-    else
-    {
-       lcd.clear();
-       lcd.print("No Data");
-       BlinkM_setRGB(blinkAddress,255,0,0);
-       delay(200);
-    }
-//    else
-//    {
-//      lcd.clear(); //Clear the display - this moves the cursor to home position as well
-//      lcd.print("No data");
-//      BlinkM_setRGB(blinkAddress,255,0,0);
-//      delay(100);
-//    }
-//    red = byte(random(255));
-//    green = byte(random(255));
-//    blue = byte(random(255));
-//    BlinkM_setRGB(blinkAddress, red , green, blue);
-//    delay(400);     
+   else  //if no data available 
+   {
+      lcd.clear();
+      lcd.print("No Data"); // print no data 
+      BlinkM_off(blinkAddress); // turn off led
+      delay(200);
+   }
+  
 
 }
