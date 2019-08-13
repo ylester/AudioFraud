@@ -8,10 +8,16 @@ import scipy.io.wavfile as wav
 from python_speech_features import mfcc, logfbank
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.metrics import f1_score, roc_auc_score, confusion_matrix, precision_recall_curve
-import speech_recognition as sr
 
+
+from sklearn.svm import SVC # "Support Vector Classifier"
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
 
 def create_cga_dataframe():
     """
@@ -49,7 +55,6 @@ def create_cga_dataframe():
     df['fbank_mean'] = cg_fbank_means
     csv_loc = "data/computer_generated.csv"
     df.to_csv(csv_loc)
-    # return df
 
 
 def create_aa_dataframe():
@@ -310,58 +315,82 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     an input audio is fraudulent or non-fraudulent
     """
     df = pd.concat([cg_df, auth_df, rec_df], sort=False)
-    X_train, X_test, y_train, y_test = train_test_split(df[features], df[target], test_size=0.2, random_state=1)
-    # clf = KNeighborsClassifier()
-    clf = SVC()
+    X_train, X_test, y_train, y_test = train_test_split(df[features],
+                df[target], test_size=0.25, random_state=1)
+
+    clf = LogisticRegression()
     clf.fit(X_train, y_train.values.ravel())
     y_pred = clf.predict(X_test)
 
+    svc = SVC(kernel="linear")
+    tree = DecisionTreeClassifier()
+    neighbors = KNeighborsClassifier(n_neighbors=8)
+    nb = GaussianNB()
+    rf = RandomForestClassifier()
+    lr = LogisticRegression()
+
+    models = [svc, tree, neighbors, nb, rf, lr]
+
+    scores = []
+    for model in models:
+        model.fit(X_train, y_train.values.ravel())
+        y_pred = model.predict(X_test)
+
+        scores.append([
+            str(model), model.score(X_train, y_train), model.score(X_test, y_test)
+        ])
+    scores = pd.DataFrame(scores, columns=["model", "train", "test"])
+    print("Here are the scores for the models when testing training on the following featues:", features)
+    print(scores)
+    print()
+    print()
+
     # Calculate Confusion Matrix for FRAUD audio
     cm_fraud = confusion_matrix(y_test, y_pred)
-    print "KNN Fraudulent Audio Confusion Matrix:"
-    print cm_fraud
-    print
+    print("KNN Fraudulent Audio Confusion Matrix:")
+    print(cm_fraud)
+    print()
 
     # Compute Area Under the Receiver Operating Characteristic Curve (FRAUD)
     auc_fraud = roc_auc_score(y_test, y_pred)
-    print "KNN ROC AUC: "
-    print auc_fraud
-    print
+    print("KNN ROC AUC: ")
+    print(auc_fraud)
+    print()
 
     # Compute F-Score (FRAUD)
     fscore_fraud = f1_score(y_test, y_pred)
-    print "KNN F-Score: "
-    print fscore_fraud
-    print
+    print("KNN F-Score: ")
+    print(fscore_fraud)
+    print()
 
     # Compute Precision Recall Curve
     precision, recall, thresholds = precision_recall_curve(y_test, y_pred)
     pr_auc = sk.metrics.auc(recall, precision)
     fpr, tpr, threshold = sk.metrics.roc_curve(y_test, y_pred)
     roc_auc = sk.metrics.auc(fpr, tpr)
-    print "KNN Precision Recall AUC:"
-    print pr_auc
+    print("KNN Precision Recall AUC:")
+    print(pr_auc)
 
-    ## Training Plots
-    # plt.title("Precision-Recall vs Threshold Chart")
-    # plt.plot(thresholds, precision[: -1], "b--", label="Precision")
-    # plt.plot(thresholds, recall[: -1], "r--", label="Recall")
-    # plt.ylabel("Precision, Recall")
-    # plt.xlabel("Threshold")
-    # plt.legend(loc="lower left")
-    # plt.ylim([0, 1])
-    # plt.show()
-    #
-    # plt.title('Receiver Operating Characteristic')
-    # plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
-    # plt.legend(loc='lower right')
-    # plt.plot([0, 1], [0, 1], 'r--')
-    # plt.xlim([0, 1])
-    # plt.ylim([0, 1])
-    # plt.ylabel('True Positive Rate')
-    # plt.xlabel('False Positive Rate')
-    # plt.show()
-    #
+    # Training Plots
+    plt.title("Precision-Recall vs Threshold Chart")
+    plt.plot(thresholds, precision[: -1], "b--", label="Precision")
+    plt.plot(thresholds, recall[: -1], "r--", label="Recall")
+    plt.ylabel("Precision, Recall")
+    plt.xlabel("Threshold")
+    plt.legend(loc="lower left")
+    plt.ylim([0, 1])
+    plt.show()
+
+    plt.title('Receiver Operating Characteristic')
+    plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
+    plt.legend(loc='lower right')
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.show()
+
     # # Classifications based on feature pairs
     # plt.title('MFCC Mean VS Fbank Mean')
     # plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
@@ -390,29 +419,18 @@ def train_model(cg_df, auth_df, rec_df, features, target):
     # plt.legend()
     # plt.show()
 
-    print
+    print()
     return clf
 
 
 def detect_fraud(input_audio):
-    # input_audio = extract_input_audio_features(input_audio)
+    features = ["rates", "mfcc_mean", "fbank_mean"]
+    input_audio = input_audio[features]
     clf = pd.read_pickle("data/classifiers/fraud_model")
     result = clf.predict(input_audio)
-    # probability = clf.predict_proba(input_audio)
     if result == 1:
-        output = ["Input Audio Marked as [FRAUD]", "Certainty: ",
-                  "[Not Fraud, Fraud]", "probability"]
-        send_results_to_hardware(output)
-        for results in output:
-            print results
         return "FRAUD"
     else:
-        output = ["Input Audio Marked as [AUTHENTIC]", "Certainty: ",
-                  "[Not Fraud, Fraud]", "probability"]
-
-        send_results_to_hardware(output)
-        for results in output:
-            print results
         return "AUTHENTIC"
 
 
@@ -442,9 +460,9 @@ def send_results_to_hardware(input):
 
 def plot_result(data, cg_df, auth_df, rec_df, result="NONE"):
     plt.title('Classification For Input Data')
-    plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue', label='Computer Generated')
+    plt.scatter(cg_df['mfcc_mean'], cg_df['fbank_mean'], color='blue')
     plt.scatter(auth_df['mfcc_mean'], auth_df['fbank_mean'], color='red', label='Authentic')
-    plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='green', label='Recorded')
+    plt.scatter(rec_df['mfcc_mean'], rec_df['fbank_mean'], color='blue', label='Fraud')
     plt.scatter(data['mfcc_mean'], data['fbank_mean'], color='black', label='Input Data Point')
     plt.text(data['mfcc_mean'] + 0.5, data['fbank_mean'], result, bbox=dict(facecolor='white', alpha=0.5))
     plt.ylabel('Filter Bank')
@@ -452,29 +470,33 @@ def plot_result(data, cg_df, auth_df, rec_df, result="NONE"):
     plt.legend()
     plt.show()
 
-
-if __name__ == "__main__":
-    print
-    cga_data = pd.read_csv("data/computer_generated.csv")[:280]
-    ra_data = pd.read_csv("data/recorded.csv")[:280]
-    aa_data = pd.read_csv("data/authentic.csv")[:280]
-    features = ["rates", "mfcc_mean", "fbank_mean"]
-    target = ["fraud"]
-
-    # Test To Show Working Model
-    random_recorded = pd.read_csv("data/recorded.csv")[features][280:].sample(1)
-    random_auth = pd.read_csv("data/authentic.csv")[features][280:].sample(1)
-    random_cg = pd.read_csv("data/computer_generated.csv")[features][280:].sample(1)
-
-    test_data = random_recorded
-
-    # model = train_model(cga_data, aa_data, ra_data, features, target)
-    # make_pickle(model)
-
-    input_audio_path = "data/fraud/recorded/*.wav"
-    example_audio = random.choice(glob.glob(input_audio_path))
-
-    # test_data = extract_input_audio_features(example_audio)
-
-    output = detect_fraud(test_data)
-    plot_result(test_data, cga_data, aa_data, ra_data, output)
+#
+# if __name__ == "__main__":
+#     print()
+#     cga_data = pd.read_csv("data/computer_generated.csv")[:290]
+#     ra_data = pd.read_csv("data/recorded.csv")[:290]
+#     aa_data = pd.read_csv("data/authentic.csv")[:290]
+#     features = ["rates", "mfcc_mean", "fbank_mean"]
+#     target = ["fraud"]
+#
+#     # Test To Show Working Model
+#     random_recorded = pd.read_csv("data/recorded.csv")[features][290:].sample(1)
+#     random_auth = pd.read_csv("data/authentic.csv")[features][290:].sample(1)
+#     random_cg = pd.read_csv("data/computer_generated.csv")[features][290:].sample(1)
+#
+#     test_data = random_auth
+#
+#     # model = train_model(cga_data, aa_data, ra_data, features, target)
+#     # make_pickle(model)
+#
+#     # input_audio_path = "data/fraud/recorded/*.wav"
+#     # for i in glob.glob(input_audio_path):
+#     #     print(i)
+#     #     data = extract_input_audio_features(i)
+#     #     output = detect_fraud(i)
+#     #     plot_result(data, cga_data, aa_data, ra_data, output)
+#
+#     # example_audio = random.choice(glob.glob(input_audio_path))
+#     # test_data = extract_input_audio_features(example_audio)
+#     output = detect_fraud(test_data)
+#     plot_result(test_data, cga_data, aa_data, ra_data, output)
