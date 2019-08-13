@@ -63,7 +63,7 @@ def get_person_dir(person, data_dir):
 
 
 def is_fraud(filename):
-    if "recorded" in filename:
+    if "record" in filename:
         return True, 1
     elif "cg" in filename:
         return True, 2
@@ -90,11 +90,12 @@ def create_dataframe(data_dir):
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
-        if person in ["authentic", "original", "fraud", "audio_data.csv"]:
+        if person in ["authentic", "original", "fraud", "audio_data.csv", "classifiers"]:
             continue
         person_dir = get_person_dir(person, data_dir)
         path = person_dir + "/*.wav"
         for audio_file in glob.glob(path):
+            print(audio_file)
             row = {}
 
             filename = get_filename(audio_file, person)
@@ -106,6 +107,8 @@ def create_dataframe(data_dir):
             audio_file = open(audio_file, "rb")
 
             rate, stereo = wavf.read(audio_file)
+            if len(stereo) == 0:
+                continue
             if not isinstance(stereo[0], np.ndarray):
                 mono = stereo
             else:
@@ -163,5 +166,7 @@ def create_csv(df, filename):
     df.to_csv(filename)
 
 
+def processess_audio():
+    pass
 
 
