@@ -8,7 +8,6 @@ from scipy.signal import stft
 from sklearn.preprocessing import LabelEncoder
 
 
-
 def create_data(data_dir):
     recorded_dir = os.path.join(data_dir, "fraud/recorded")
     recorded_dir = os.path.realpath(recorded_dir)
@@ -86,7 +85,6 @@ def make_pickle(name, obj):
 
 def create_dataframe(data_dir):
     rows = []
-
     mono = None
 
     for index, person in enumerate(os.listdir(data_dir)):
@@ -153,6 +151,8 @@ def create_dataframe(data_dir):
     encoder = LabelEncoder()
     df["speaker_num"] = encoder.fit_transform(df['speaker_num'])
 
+    df = df.reindex(sorted(df.columns), axis=1)
+    
     return df
 
 
@@ -165,8 +165,6 @@ def get_data():
 def create_csv(df, filename):
     df.to_csv(filename)
 
-
 def processess_audio():
     pass
-
 
