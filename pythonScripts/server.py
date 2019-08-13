@@ -12,7 +12,7 @@ def run_server():
     port = 50001                    # Reserve a port for your service every new transfer wants a new port or you must wait.
     s = socket.socket()             # Create a socket object
     #host = "192.168.0.18"          # server ip from if config at home
-    host = '192.168.137.52'         # serve ip at school from laptop hotspot using ifconfig
+    host = '192.168.137.98'         # serve ip at school from laptop hotspot using ifconfig
     s.bind((host, port))            # Bind to the port
     s.listen(5)                     # Now wait for client connection.
 

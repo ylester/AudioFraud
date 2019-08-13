@@ -1,8 +1,8 @@
 import socket                   # Import socket module
 
 s = socket.socket()              # Create a socket object
-host = '192.168.0.18'            # ip address of server at home
-#host = '192.168.137.52'         # ip address of server at schoool
+#host = '192.168.0.18'            # ip address of server at home
+host = '192.168.137.98'         # ip address of server at schoool
 port = 50000                     # Reserve a port for your service every new transfer wants a new port or you must wait.
 
 s.connect((host, port))
