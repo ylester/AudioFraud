@@ -1,24 +1,36 @@
-##Import classifer models
-from sklearn.linear_model import LogisticRegression
+# Import classifier model
+from sklearn.ensemble import RandomForestClassifier
 
-#Feature Manuiplaton
-from sklearn.model_selection import train_test_split
-
-#Import metrics
-from sklearn.metrics import confusion_matrix
+# Feature manipulation
+import pandas as pd
 
 
-def extract_features():
-    None
+def train_model(df, features):
+    X_features = features[0:-1]
+    y_feature = features[-1]
+    model = RandomForestClassifier()
+    X = df[X_features].values
+    y = df[y_feature].values.ravel()
+    model.fit(X, y)
+    return model
 
-def identify_speaker(df, X_features, y_features):
-    log_regr = LogisticRegression(random_state=0)
-    X = df.iloc[:, X_features:].values
-    y = df.iloc[:, y_features].values
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=0)
-    log_regr.fit(X_train, y_train)
-    y_pred = log_regr.predict(X_test)
 
-    # Making the Confusion Matrix
-    cm = confusion_matrix(y_test, y_pred)
-    print(cm)
+def get_speaker(speaker):
+    speakers = {0: "Sedrick",
+                1: "Shawn",
+                2: "Unknown",
+                3:"Yesha"}
+
+    return speakers[speaker]
+
+
+def identify_speaker(input):
+    model = pd.read_pickle("data/classifiers/voice_model1")
+    features = [str(i) for i in range(1,102)] + ["fbankmean", "mfcc_mean"]
+    input = input[features]
+    result = model.predict(input)
+    speaker = get_speaker(result)
+    return speaker
+
+
+
