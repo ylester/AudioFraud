@@ -1,11 +1,14 @@
 import glob, os, pickle
-import scipy.io.wavfile as wavf
+import scipy.io.wavfile as wav
 import pandas as pd
 import numpy as np
 from python_speech_features import mfcc, logfbank
 from pydub import AudioSegment
 from scipy.signal import stft
 from sklearn.preprocessing import LabelEncoder
+
+from audio_fraud_detector import detect_fraud
+from speakerrecognition import identify_speaker
 
 
 def create_data(data_dir):
@@ -165,6 +168,41 @@ def get_data():
 def create_csv(df, filename):
     df.to_csv(filename)
 
-def processess_audio():
-    pass
+def process_audio(file):
+    df = extract_input_audio_features(file)
+    fraudulent = detect_fraud(df)
+    speaker = identify_speaker(df)
+    result = speaker + " , " + fraudulent
+    return result
 
+
+def extract_input_audio_features(audio):
+    row = {}
+
+    rate, stereo = wav.read(audio)
+
+    row['rates'] = [rate]
+
+    if not isinstance(stereo[0], np.ndarray):
+        mono = stereo
+    else:
+        mono = stereo[:, 0]
+
+    row["rate"] = [rate]
+
+    f, t, Zxx = stft(mono, rate, nperseg=200)
+    temp = pd.DataFrame(Zxx.T).abs().mean().values
+    count = 1
+    for val in temp:
+        row[count] = [val]
+        count += 1
+
+    fbank_feat = logfbank(stereo, rate, nfft=1200)
+    row['fbank_mean'] = np.mean(fbank_feat)
+
+    mfcc_feature = mfcc(stereo, rate, nfft=1200)
+    row['mfcc_mean'] = np.mean(mfcc_feature)
+
+
+    df = pd.DataFrame(row)
+    return df
