@@ -198,7 +198,7 @@ def extract_input_audio_features(audio):
         count += 1
 
     fbank_feat = logfbank(stereo, rate, nfft=1200)
-    row['fbank_mean'] = np.mean(fbank_feat)
+    row['fbankmean'] = np.mean(fbank_feat)
 
     mfcc_feature = mfcc(stereo, rate, nfft=1200)
     row['mfcc_mean'] = np.mean(mfcc_feature)

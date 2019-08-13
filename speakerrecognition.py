@@ -25,12 +25,12 @@ def get_speaker(speaker):
 
 
 def identify_speaker(input):
-    model = pd.read_pickle("data/classifiers/speaker_recognition_model5")
-    features =[i for i in range(1,102)] + ["fbank_mean", "mfcc_mean"]
+    model = pd.read_pickle("data/classifiers/speaker_recognition_model2")
+    features = [i for i in range(1,102)] + ["fbankmean", "mfcc_mean"]
     input = input[features]
-    result = model.predict(input)
+    result = model.predict(input)[0]
     speaker = get_speaker(result)
     return speaker
 
-
+# train_model()
 

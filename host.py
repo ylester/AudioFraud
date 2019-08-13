@@ -4,10 +4,12 @@ from audio_data import process_audio
 s = socket.socket()              # Create a socket object
 #host = '192.168.0.18'            # ip address of server at home
 host = '192.168.137.98'         # ip address of server at schoool
-port = 50000                     # Reserve a port for your service every new transfer wants a new port or you must wait.
+port = 50001                   # Reserve a port for your service every new transfer wants a new port or you must wait.
 
 s.connect((host, port))
 # s.send("Hello server!".encode())   # send hello to server not needed but done to ensure connection is established
+randomString="Y'esha , Authentic"
+s.send(randomString.encode())
 
 fileName=s.recv(1024).decode()
 
@@ -30,9 +32,11 @@ print("Done receiving file")
 # result
 
 
+   # send result to server
 result = process_audio(fileName)
-s.send(result.encode())   # send result to server
+print(result)
+#s.send(result.encode())   # send result to server
 
-print('Successfully get the file')
-# s.close() you dobt want to close connection with socket 
+
+s.close()# you dont want to close connection with socket
 print('connection closed')

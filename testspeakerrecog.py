@@ -417,21 +417,21 @@ models = train_test_models(traindf, testdf, models, features3, features3_names)
 # plot_result(data, result, trainsed, trainshawn, trainunknown, trainyesha)
 
 
-# count = 1
-# for model in models:
-#     new_name = "data/classifiers/speaker_recognition_model" + str(count)
-#     make_pickle(new_name, model)
-#     count += 1
+count = 1
+for model in models:
+    new_name = "data/classifiers/speaker_recognition_model" + str(count)
+    make_pickle(new_name, model)
+    count += 1
 
 
-path = "/Users/sedrickcashawjr/Documents/School/ECE4983/AudioFraud/AudioFraud/unseen"
-for file in os.listdir(path):
-    file = path + "/" + file
-    print(file)
-    input = extract_features(file)
-    model = models[1]
-    result = identify_speaker(model, input)
-    plot_result(input, result, trainsed, trainshawn, trainunknown, trainyesha)
+# path = "/Users/sedrickcashawjr/Documents/School/ECE4983/AudioFraud/AudioFraud/unseen"
+# for file in os.listdir(path):
+#     file = path + "/" + file
+#     print(file)
+#     input = extract_features(file)
+#     model = models[1]
+#     result = identify_speaker(model, input)
+#     plot_result(input, result, trainsed, trainshawn, trainunknown, trainyesha)
 
     # results = [None] * len(models)
     # for model in models:
