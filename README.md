@@ -8,7 +8,7 @@ Currently, there is not a system in place to detect fraudulent computer generate
 
 ## Solution:
 
-Design a secure voice recognition system that is able to detect computer generated audio fraud.
+Design a secure voice recognition system that is able to detect computer generated and recorded audio fraud.
 
 ## Installation:
 
@@ -17,6 +17,7 @@ git clone git@github.com:ylester/AudioFraud.
 cd AudioFraud
 python3 -m virtualenv --python=$pypath .venv
 source .venv/bin/activate
+pip3 install -r requirements.txt 
 ```
 
 ## Modules:
@@ -40,3 +41,8 @@ source .venv/bin/activate
 - [Sedrick Cashaw Jr](https://github.com/sedcash)
 
 - [Hussein (Shawn) El-Souri](https://github.com/helsouri)
+
+
+### References :
+- https://makersportal.com/blog/2018/8/23/recording-audio-on-the-raspberry-pi-with-python-and-a-usb-microphon
+
