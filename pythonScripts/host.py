@@ -6,7 +6,7 @@ host = '192.168.0.18'            # ip address of server at home
 port = 50000                     # Reserve a port for your service every new transfer wants a new port or you must wait.
 
 s.connect((host, port))
-s.send(b"Hello server!")
+s.send("Hello server!".encode())   # send hello to server not needed but done to ensure connection is established
 
 fileName=s.recv(1024).decode()
 print(fileName)
@@ -17,12 +17,15 @@ with open(fileName, 'wb') as f:
         data = s.recv(1024)
         print('received', (data))
         print('\n')
-        if not data:
+        if not data:  # if there is no file break
             break
         # write data to a file
-        f.write(data)
-
+        f.write(data)  # if fiel data exists write the file
+# doing fraud dection
+# doing speaker recognition
+# result
+s.send(result.encode())   # send result to server
 f.close()
 print('Successfully get the file')
-s.close()
+# s.close() you dobt want to close connection with socket 
 print('connection closed')
