@@ -25,8 +25,8 @@ def get_speaker(speaker):
 
 
 def identify_speaker(input):
-    model = pd.read_pickle("data/classifiers/voice_model1")
-    features = [str(i) for i in range(1,102)] + ["fbankmean", "mfcc_mean"]
+    model = pd.read_pickle("data/classifiers/speaker_recognition_model5")
+    features =[i for i in range(1,102)] + ["fbank_mean", "mfcc_mean"]
     input = input[features]
     result = model.predict(input)
     speaker = get_speaker(result)

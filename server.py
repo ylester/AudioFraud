@@ -36,7 +36,7 @@ def run_server():
         #data = conn.recv(1024)   receives hello from client 
         #print('Server received', repr(data))
         
-        f = open('data/rand.wav','rb')
+        f = open('rand.wav','rb')
         # conn.send(fileName.encode())
       
         dataPacket = f.read(1024)  # buffering file in packets to send to client
