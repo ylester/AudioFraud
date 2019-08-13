@@ -7,17 +7,9 @@ import random, os, pickle
 import scipy.io.wavfile as wav
 from python_speech_features import mfcc, logfbank
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
 from sklearn.metrics import f1_score, roc_auc_score, confusion_matrix, precision_recall_curve
 
-
-from sklearn.svm import SVC # "Support Vector Classifier"
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import RandomForestClassifier
 
 def create_cga_dataframe():
     """
@@ -470,7 +462,7 @@ def plot_result(data, cg_df, auth_df, rec_df, result="NONE"):
     plt.legend()
     plt.show()
 
-#
+
 # if __name__ == "__main__":
 #     print()
 #     cga_data = pd.read_csv("data/computer_generated.csv")[:290]
