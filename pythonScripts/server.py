@@ -20,24 +20,26 @@ def run_server():
 
     while True:
         conn, addr = s.accept()     # Establish connection with client.
+        print ('Got connection from', addr)  
         # ________ Record audio file
         recordCMD = "arecord -D hw:1,0 -d 5 -f cd -r 48000 rand.wav -c 1"
-        runAgain = input("Do you want to start? Enter y/n: ")
+        runAgain = input("Do you want to start? Enter y/n: ")   #v hitting y and enter will automatically start recording
         if runAgain == "y":
             print("Will execute in command line\n"+ recordCMD)  # for debugging
             p = subprocess.Popen(recordCMD, shell=True, stdout=subprocess.PIPE)
             print ("recording")
-            time.sleep(5)
+            time.sleep(5) # since recording is for 5 seconds wait that long 
             print ("Done rec.")
         else
             break    
-        print ('Got connection from', addr)
-        data = conn.recv(1024)
-        print('Server received', repr(data))
+        # at this point you have a wav file 
+        #data = conn.recv(1024)   receives hello from client 
+        #print('Server received', repr(data))
+        
         f = open('data/rand.wav','rb')
         # conn.send(fileName.encode())
-        ser.write(result.encode())    # sends result to hadrware
-        dataPacket = f.read(1024)
+      
+        dataPacket = f.read(1024)  # buffering file in packets to send to client
         while (dataPacket):
             conn.send(dataPacket)
             print('Sent ',repr(dataPacket))
@@ -45,7 +47,10 @@ def run_server():
             dataPacket = f.read(1024)
         f.close()
 
-        print('Done sending')
+        print('Done sending file')
+
+        result = conn.recv(1024)      # receives result from client
+        ser.write(result.encode())    # sends result to hadrware 
         conn.send(b'Thank you for connecting')
         conn.close()
 if __name__ == "__main__":
