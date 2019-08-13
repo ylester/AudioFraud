@@ -27,9 +27,11 @@ pip3 install -r requirements.txt
 
 - Speaker Recognition Algorithm
 	- The algorithm will identify the slight alterations given by the different set of audios to detect the current speaker.
+<<<<<<< HEAD
 
 
 ![Screen_Output](https://raw.githubusercontent.com/ylester/AudioFraud/master/SMD.png)
+
 
 - Hardware
 	- The hardware is now very close to being an "all in one" via the usage of rasberry pi that can directly program and run arduinio
@@ -44,6 +46,7 @@ pip3 install -r requirements.txt
 - [Sedrick Cashaw Jr](https://github.com/sedcash)
 
 - [Hussein (Shawn) El-Souri](https://github.com/helsouri)
+
 
 
 ### References :
