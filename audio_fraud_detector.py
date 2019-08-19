@@ -397,7 +397,7 @@ def train_model(cg_df, auth_df, rec_df, features, target):
 
 
 def detect_fraud(input_audio):
-    input_audio = extract_input_audio_features(input_audio)
+    # input_audio = extract_input_audio_features(input_audio)
     clf = pd.read_pickle("data/classifiers/fraud_model")
     result = clf.predict(input_audio)
     probability = clf.predict_proba(input_audio)
@@ -453,20 +453,23 @@ if __name__ == "__main__":
     print
     # DEMO FRAUD
 
-    # cga_data = pd.read_csv("data/computer_generated.csv")[:250]
-    # ra_data = pd.read_csv("data/recorded.csv")[:250]
-    # aa_data = pd.read_csv("data/authentic.csv")[:250]
+    cga_data = pd.read_csv("data/computer_generated.csv")[:250]
+    ra_data = pd.read_csv("data/recorded.csv")[:250]
+    aa_data = pd.read_csv("data/authentic.csv")[:250]
+    features = ["mfcc_mean", "rates", "fbank_mean"]
+    target = ["fraud"]
 
-    # # Test To Show Working Model
-    # random_recorded = pd.read_csv("data/recorded.csv")[features][250:].sample(1)
-    # random_auth = pd.read_csv("data/authentic.csv")[features][250:].sample(1)
-    # random_cg = pd.read_csv("data/computer_generated.csv")[features][250:].sample(1)
+    # Test To Show Working Model
+    random_recorded = pd.read_csv("data/recorded.csv")[features][250:].sample(1)
+    random_auth = pd.read_csv("data/authentic.csv")[features][250:].sample(1)
+    random_cg = pd.read_csv("data/computer_generated.csv")[features][250:].sample(1)
+
+    test_data = random_cg
+    example_audio = test_data
     #
-    # test_data = random_cg
-    #
-    input_audio_path = "data/fraud/recorded/*.wav"
-    example_audio = random.choice(glob.glob(input_audio_path))
-    test_data = extract_input_audio_features(example_audio)
+    # input_audio_path = "data/fraud/recorded/*.wav"
+    # example_audio = random.choice(glob.glob(input_audio_path))
+    # test_data = extract_input_audio_features(example_audio)
 
     output = detect_fraud(example_audio)
     plot_result(test_data, cga_data, aa_data, ra_data, output)
